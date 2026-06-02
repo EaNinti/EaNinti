@@ -505,7 +505,7 @@
                     <h3 style="margin-top:0; font-size:16px; color:var(--primary)">Invoice Parts Configuration</h3>
                     <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
                         <input type="text" id="partDescription" placeholder="Part Description" style="flex: 2; min-width: 150px;">
-                        <input type="number" step="0.01" id="partCost" placeholder="Price ($)" style="width: 120px;">
+                        <input type="number" step="0.01" id="partCost" placeholder="Price (US$)" style="width: 120px;">
                         <input type="number" id="partQty" placeholder="Qty" value="1" style="width: 80px;">
                         <button type="button" id="addPartBtn">+ Add Part</button>
                     </div>
@@ -569,11 +569,11 @@
                             <input type="text" id="techName" required placeholder="Name">
                         </div>
                         <div style="flex: 1; min-width: 110px;">
-                            <label style="font-size: 12px;">Standard Rate ($)</label>
+                            <label style="font-size: 12px;">Standard Rate (US$)</label>
                             <input type="number" id="techRate" required placeholder="e.g. 65">
                         </div>
                         <div style="flex: 1; min-width: 110px;">
-                            <label style="font-size: 12px;">Mates Rate ($)</label>
+                            <label style="font-size: 12px;">Mates Rate (US$)</label>
                             <input type="number" id="techMatesRate" required placeholder="e.g. 45">
                         </div>
                         <button type="submit" style="height: 40px;">Register Technician</button>

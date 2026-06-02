@@ -750,4 +750,248 @@
             const container = document.getElementById('tech-finance-summary-list'); if(!container) return;
             container.innerHTML = '';
             technicians.forEach(t => {
-                let totalHours =
+                let totalHours = 0, totalEarnings = 0;
+                timeLogs.forEach(log => {
+                    if(log.tech === t.name) {
+                        totalHours += log.hrs;
+                        const linkedJob = jobs.find(j => j.id === log.jobId);
+                        totalEarnings += (log.hrs * ((linkedJob && linkedJob.rateTier === 'mates') ? t.matesRate : t.stdRate));
+                    }
+                });
+                let totalPaidOut = techPayouts[t.name] || 0;
+                let balanceOwed = totalEarnings - totalPaidOut;
+                container.innerHTML += `<tr>
+                    <td><strong>${t.name}</strong></td>
+                    <td>${totalHours.toFixed(1)} hrs</td>
+                    <td style="color:var(--primary); font-weight:bold;">$${totalEarnings.toFixed(2)}</td>
+                    <td style="color:var(--success); font-weight:bold;">$${totalPaidOut.toFixed(2)}</td>
+                    <td style="color:${balanceOwed > 0 ? 'var(--danger)' : 'var(--dark)'}; font-weight:bold;">$${balanceOwed.toFixed(2)}</td>
+                    <td>
+                        <div style="display:flex; gap:5px; align-items:center;">
+                            <input type="number" id="payout-input-${t.name}" placeholder="Amount" style="padding:4px; font-size:0.85rem; width:80px;">
+                            <button class="btn btn-success" style="padding:4px 8px; font-size:0.8rem;" onclick="recordTechPayout('${t.name}')">Pay</button>
+                        </div>
+                    </td>
+                </tr>`;
+            });
+        }
+
+        function recordTechPayout(techName) {
+            const inputEl = document.getElementById(`payout-input-${techName}`);
+            const amount = parseFloat(inputEl.value) || 0; if(amount <= 0) return;
+            techPayouts[techName] = (techPayouts[techName] || 0) + amount;
+            localStorage.setItem('m_tech_payouts', JSON.stringify(techPayouts));
+            inputEl.value = ''; calculateTechFinancialSummary();
+        }
+
+        /* ------------------ INVOICES ------------------ */
+        function onInvoiceVesselChange() { renderAllocatedPartsTable(); renderInvoicePaymentHistory(); previewInvoice(); }
+        
+        function addItemizedPart() {
+            const jobId = document.getElementById('invoice-job-select').value; if(!jobId) return;
+            const pName = document.getElementById('part-name-input').value.trim();
+            const pQty = parseInt(document.getElementById('part-qty-input').value) || 1;
+            const pCost = parseFloat(document.getElementById('part-cost-input').value) || 0;
+            
+            if(!pName) return;
+            if(!itemizedParts[jobId]) itemizedParts[jobId] = [];
+            itemizedParts[jobId].push({ id: 'P-' + Date.now(), name: pName, qty: pQty, unitCost: pCost });
+            localStorage.setItem('m_parts', JSON.stringify(itemizedParts));
+            
+            document.getElementById('part-name-input').value = ''; document.getElementById('part-qty-input').value = '1'; document.getElementById('part-cost-input').value = '0.00';
+            onInvoiceVesselChange();
+        }
+
+        function removeItemizedPart(jobId, partId) {
+            if(itemizedParts[jobId]) {
+                itemizedParts[jobId] = itemizedParts[jobId].filter(p => p.id !== partId);
+                localStorage.setItem('m_parts', JSON.stringify(itemizedParts));
+                onInvoiceVesselChange();
+            }
+        }
+
+        function renderAllocatedPartsTable() {
+            const jobId = document.getElementById('invoice-job-select').value;
+            const body = document.getElementById('allocated-parts-list'); body.innerHTML = '';
+            if(!jobId || !itemizedParts[jobId] || itemizedParts[jobId].length === 0) {
+                body.innerHTML = `<tr><td colspan="4" style="text-align:center; color:gray; padding:6px;">No material parameters allocated yet.</td></tr>`; return;
+            }
+            itemizedParts[jobId].forEach(p => {
+                body.innerHTML += `<tr><td>${p.name}</td><td>${p.qty}</td><td>$${p.unitCost.toFixed(2)}</td><td><button class="btn btn-danger" style="padding:2px 6px; font-size:0.75rem;" onclick="removeItemizedPart('${jobId}', '${p.id}')">Remove</button></td></tr>`;
+            });
+        }
+
+        function recordClientPayment() {
+            const jobId = document.getElementById('invoice-job-select').value; if(!jobId) return;
+            const amt = parseFloat(document.getElementById('payment-amount-input').value) || 0;
+            const method = document.getElementById('payment-method-input').value;
+            if(amt <= 0) return;
+
+            if(!clientPayments[jobId]) clientPayments[jobId] = [];
+            clientPayments[jobId].push({ timestamp: Date.now(), amount: amt, method: method });
+            localStorage.setItem('m_client_payments', JSON.stringify(clientPayments));
+            document.getElementById('payment-amount-input').value = '0.00';
+            onInvoiceVesselChange();
+        }
+
+        function renderInvoicePaymentHistory() {
+            const jobId = document.getElementById('invoice-job-select').value;
+            const container = document.getElementById('invoice-payment-history-list'); if(!container) return;
+            container.innerHTML = '';
+            if(!jobId || !clientPayments[jobId] || clientPayments[jobId].length === 0) {
+                container.innerHTML = `<div style="color:gray;text-align:center;padding:5px;">No payments posted.</div>`; return;
+            }
+            clientPayments[jobId].forEach(p => {
+                container.innerHTML += `<div style="padding:3px 0; border-bottom:1px solid #edf2f7; display:flex; justify-content:space-between;">
+                    <span>📅 ${new Date(p.timestamp).toLocaleDateString()} - <strong>${p.method}</strong></span>
+                    <span style="color:var(--success); font-weight:bold;">+$${p.amount.toFixed(2)}</span>
+                </div>`;
+            });
+        }
+
+        function previewInvoice() {
+            const id = document.getElementById('invoice-job-select').value; if(!id) return;
+            const job = jobs.find(j => j.id === id); if(!job) return;
+            const logs = timeLogs.filter(l => l.jobId === id);
+            const currency = document.getElementById('invoice-currency').value;
+            const applyVat = document.getElementById('invoice-vat').value === 'yes';
+            
+            let conversionFactor = (currency === 'XCD') ? USD_TO_XCD : 1;
+            let symbol = (currency === 'XCD') ? "$ XCD " : "$ USD ";
+            
+            document.getElementById('inv-date').innerText = new Date().toLocaleDateString();
+            document.getElementById('inv-ref').innerText = job.id;
+            document.getElementById('inv-boat').innerText = job.boat;
+            document.getElementById('inv-loc').innerText = job.loc;
+            document.getElementById('inv-rate-tier').innerText = job.rateTier === 'mates' ? "Mates Rate Tier" : "Standard Corporate Tier";
+            document.getElementById('inv-client-name').innerText = job.clientName || 'N/A';
+            document.getElementById('inv-client-contact').innerText = job.clientContact || 'N/A';
+            
+            const body = document.getElementById('inv-items'); body.innerHTML = '';
+            let totalLabor = 0;
+            
+            logs.forEach(l => {
+                const techProfile = technicians.find(t => t.name === l.tech);
+                let selectedBase = job.rateTier === 'mates' ? (techProfile ? techProfile.matesRate : 45) : (techProfile ? techProfile.stdRate : 65);
+                let cost = l.hrs * (selectedBase * conversionFactor); 
+                totalLabor += cost;
+                body.innerHTML += `<tr><td>Marine Tech Services (${l.tech}) - ${job.sys}: ${l.desc}</td><td>${l.hrs} hours</td><td style="text-align:right;">${symbol}${cost.toFixed(2)}</td></tr>`;
+            });
+            
+            if(logs.length === 0) body.innerHTML = `<tr><td colspan="3" style="text-align:center; color:gray;">No technician time logs received yet.</td></tr>`;
+
+            let totalParts = 0;
+            const partsList = itemizedParts[id] || [];
+            if(partsList.length > 0) {
+                body.innerHTML += `<tr style="background:#f8f9fa; font-weight:bold;"><td colspan="3" style="padding: 6px 15px; border-top:1px solid #ccc;">Allocated Materials Ledger</td></tr>`;
+                partsList.forEach(p => {
+                    let totalPartCost = (p.qty * p.unitCost) * conversionFactor;
+                    totalParts += totalPartCost;
+                    body.innerHTML += `<tr><td>Material: ${p.name}</td><td>Qty: ${p.qty} (@ ${symbol}${(p.unitCost * conversionFactor).toFixed(2)})</td><td style="text-align:right;">${symbol}${totalPartCost.toFixed(2)}</td></tr>`;
+                });
+            }
+
+            let subtotal = totalLabor + totalParts;
+            let vatAmount = applyVat ? (subtotal * 0.15) : 0;
+            let grossGrandTotal = subtotal + vatAmount;
+            let grossPaymentsExchanged = (clientPayments[id] ? clientPayments[id].reduce((acc, p) => acc + p.amount, 0) : 0) * conversionFactor;
+
+            document.getElementById('inv-sub-labor').innerText = `${symbol}${totalLabor.toFixed(2)}`;
+            document.getElementById('inv-sub-parts').innerText = `${symbol}${totalParts.toFixed(2)}`;
+            document.getElementById('inv-vat-amount').innerText = `${symbol}${vatAmount.toFixed(2)}`;
+            document.getElementById('inv-total').innerText = `${symbol}${grossGrandTotal.toFixed(2)}`;
+            document.getElementById('inv-paid-accumulator').innerText = `${symbol}${grossPaymentsExchanged.toFixed(2)}`;
+            document.getElementById('inv-balance-remaining').innerText = `${symbol}${(grossGrandTotal - grossPaymentsExchanged).toFixed(2)}`;
+        }
+
+        /* ------------------ DISPATCH SYNC CAMERA ENGINE ------------------ */
+        function handleIncomingDecodedPayload(text) {
+            try {
+                // Inbound Web Link intercept routing configuration
+                if (text.includes('?dispatchJobId=')) {
+                    stopScanner();
+                    const urlParams = new URLSearchParams(text.split('?')[1]);
+                    const jobId = urlParams.get('dispatchJobId');
+                    if(jobId) {
+                        setTimeout(() => enterTechMobileMode(jobId), 250);
+                        return;
+                    }
+                }
+
+                let payload = JSON.parse(text);
+                if (payload.type === "FIELD_DISPATCH") {
+                    stopScanner();
+                    setTimeout(() => enterTechMobileMode(payload.jobId), 250);
+                } 
+                else if (payload.type === "SYNC_HOURS") {
+                    stopScanner();
+                    payload.data.forEach(newLog => {
+                        if(!timeLogs.some(l => l.timestamp === newLog.timestamp)) {
+                            timeLogs.push(newLog);
+                        }
+                    });
+                    localStorage.setItem('m_logs', JSON.stringify(timeLogs));
+                    alert("Import successful! Technician logs synced.");
+                    
+                    setTimeout(() => {
+                        switchView('invoice-view');
+                        if(payload.data.length > 0 && document.getElementById('invoice-job-select')) {
+                            document.getElementById('invoice-job-select').value = payload.data[0].jobId;
+                            onInvoiceVesselChange();
+                        }
+                    }, 300);
+                }
+            } catch(e) { 
+                alert("Scan processed. Unrecognized format packet."); 
+            }
+        }
+
+        function processManualPayloadImport() {
+            const rawText = document.getElementById('manual-qr-payload-input').value.trim();
+            if(!rawText) return;
+            handleIncomingDecodedPayload(rawText);
+            document.getElementById('manual-qr-payload-input').value = '';
+        }
+
+        function startScanner() {
+            if(qrScanner) {
+                stopScanner();
+            }
+            
+            const readerElement = document.getElementById("reader");
+            if (!readerElement) return;
+
+            qrScanner = new Html5QrcodeScanner("reader", { 
+                fps: 15, 
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0
+            }, false);
+            
+            qrScanner.render(
+                (decodedText) => handleIncomingDecodedPayload(decodedText),
+                (error) => { }
+            );
+        }
+
+        function stopScanner() { 
+            if (qrScanner) {
+                qrScanner.clear().catch(err => console.log("Scanner cleaned safely."));
+                qrScanner = null;
+            } 
+        }
+        
+        window.onload = function() { 
+            initProfileDisplay(); renderJobs(); populateDropdowns(); calculateTechFinancialSummary();
+            
+            // SYSTEM INBOUND ROUTER: Checks URL parameters on bootup
+            const urlParams = new URLSearchParams(window.location.search);
+            const initialDispatchId = urlParams.get('dispatchJobId');
+            if (initialDispatchId) {
+                setTimeout(() => {
+                    enterTechMobileMode(initialDispatchId);
+                }, 300);
+            }
+        }
+    </script>
+</body>
+</html>

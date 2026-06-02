@@ -13,11 +13,11 @@
             margin: 0;
             padding: 20px;
         }
-        h1, h2 {
+        h1, h2, h3 {
             color: #333;
         }
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             background: #fff;
             padding: 20px;
@@ -73,6 +73,14 @@
         }
         button:hover {
             background-color: #0056b3;
+        }
+        button.btn-danger {
+            background-color: #dc3545;
+            padding: 5px 10px;
+            font-size: 13px;
+        }
+        button.btn-danger:hover {
+            background-color: #bd2130;
         }
         table {
             width: 100%;
@@ -146,6 +154,13 @@
             display: flex;
             gap: 5px;
         }
+        .invoice-card {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 6px;
+            background: #fafafa;
+            margin-top: 20px;
+        }
         /* Routing Overrides for Tech Mobile View */
         body.mobile-mode .admin-only {
             display: none !important;
@@ -168,6 +183,7 @@
             <div class="nav-tabs">
                 <button class="tab-link active" onclick="openTab(event, 'Dashboard')">Job Dashboard</button>
                 <button class="tab-link" onclick="openTab(event, 'CreateJob')">Create Job Card</button>
+                <button class="tab-link" onclick="openTab(event, 'Invoicing')">Invoicing</button>
                 <button class="tab-link" onclick="openTab(event, 'Settings')">Settings</button>
             </div>
 
@@ -179,6 +195,7 @@
                         <tr>
                             <th>Job ID</th>
                             <th>Boat Name</th>
+                            <th>Owner</th>
                             <th>Boat Location</th>
                             <th>Marina Location</th>
                             <th>Assigned Techs</th>
@@ -200,6 +217,14 @@
                         <input type="text" id="boatName" required>
                     </div>
                     <div class="form-group">
+                        <label for="boatOwner">Boat Owner Name:</label>
+                        <input type="text" id="boatOwner" required placeholder="e.g. John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label for="clientPhone">Client Contact Number:</label>
+                        <input type="text" id="clientPhone" required placeholder="e.g. 473-444-1234">
+                    </div>
+                    <div class="form-group">
                         <label for="boatLocation">Boat Location:</label>
                         <input type="text" id="boatLocation" required>
                     </div>
@@ -208,11 +233,7 @@
                         <input type="text" id="marinaLocation" required>
                     </div>
                     <div class="form-group">
-                        <label for="clientPhone">Client Contact Number:</label>
-                        <input type="text" id="clientPhone" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Assign Technicians:</label>
+                        <label>Assign Technicians (Select multiple if needed):</label>
                         <div class="multi-select-box" id="techAssignmentContainer">
                             <!-- Populated via settings state matrix -->
                         </div>
@@ -225,15 +246,59 @@
                 </form>
             </div>
 
+            <!-- TAB: INVOICING -->
+            <div id="Invoicing" class="tab-content">
+                <h2>Generate Marine Invoice</h2>
+                <div class="form-group" style="margin-top: 15px;">
+                    <label for="invoiceJobSelect">Select Active Job:</label>
+                    <select id="invoiceJobSelect" onchange="calculateInvoice()">
+                        <!-- Loaded dynamically -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="invoiceRateType">Billing Rate Profile:</label>
+                    <select id="invoiceRateType" onchange="calculateInvoice()">
+                        <option value="standard">Standard Rate</option>
+                        <option value="mates">Mates Rates</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="invoiceHours">Billable Hours Logged:</label>
+                    <input type="number" step="0.25" id="invoiceHours" value="1.0" oninput="calculateInvoice()">
+                </div>
+
+                <div id="invoicePreview" class="invoice-card">
+                    <h3>Invoice Preview</h3>
+                    <hr style="margin: 10px 0; border:0; border-top: 1px solid #ccc;">
+                    <p><strong>Vessel:</strong> <span id="invBoat">--</span></p>
+                    <p><strong>Owner:</strong> <span id="invOwner">--</span></p>
+                    <p><strong>Assigned Crew:</strong> <span id="invTechs">--</span></p>
+                    <table style="margin-top: 15px; background: #fff;">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>Hours</th>
+                                <th>Rate Details</th>
+                                <th>Line Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoiceTableBody">
+                            <!-- Injected calculations -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- TAB: CONFIGURATION SETTINGS -->
             <div id="Settings" class="tab-content">
                 <h2>Settings & Technician Management</h2>
                 
                 <div style="margin-bottom: 25px;">
                     <h3>Add New Technician</h3>
-                    <form id="techForm" onsubmit="addTechnician(event)" style="display: flex; gap: 10px; margin-top: 10px;">
-                        <input type="text" id="techName" placeholder="Technician Name" required>
-                        <input type="number" id="techRate" placeholder="Hourly Rate" required style="width: 130px;">
+                    <form id="techForm" onsubmit="addTechnician(event)" style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                        <input type="text" id="techName" placeholder="Technician Name" required style="flex: 1; min-width: 150px;">
+                        <input type="number" id="techRate" placeholder="Standard Rate" required style="width: 130px;">
+                        <input type="number" id="techMatesRate" placeholder="Mates Rate" required style="width: 130px;">
                         <button type="submit">Add Tech</button>
                     </form>
                 </div>
@@ -243,21 +308,15 @@
                     <thead>
                         <tr>
                             <th>Technician Name</th>
-                            <th>Hourly Rate</th>
+                            <th>Standard Rate</th>
+                            <th>Mates Rate</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="techTableBody">
                         <!-- Dynamic layout mapping -->
                     </tbody>
                 </table>
-
-                <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ccc;">
-                
-                <h3>Billing Rules</h3>
-                <div class="form-group" style="display: flex; align-items: center; margin-top: 10px;">
-                    <input type="checkbox" id="matesRates" onchange="toggleMatesRates()">
-                    <label for="matesRates" style="margin-bottom: 0; font-weight: normal;">Apply Mates Rates in Settings</label>
-                </div>
             </div>
         </div>
 
@@ -268,6 +327,8 @@
             <div style="background: #fcfcfc; border: 1px solid #ddd; padding: 15px; border-radius: 6px; margin: 20px 0;">
                 <h2 id="viewBoatName" style="margin-top: 0; color: #007bff;">Boat Name</h2>
                 <p><strong>Job ID:</strong> <span id="viewJobId">--</span></p>
+                <p><strong>Owner:</strong> <span id="viewBoatOwner">--</span></p>
+                <p><strong>Contact:</strong> <span id="viewClientPhone">--</span></p>
                 <p><strong>Boat Location:</strong> <span id="viewBoatLocation">--</span></p>
                 <p><strong>Marina Location:</strong> <span id="viewMarinaLocation">--</span></p>
                 <p><strong>Scope of Work:</strong></p>
@@ -310,43 +371,45 @@
     </div>
 
     <script>
-        // Restored Original Ea Ninti Staff Registries and Job Cards
+        // Ea Ninti Master Data Store
         let jobs = [
-            { id: "EAN-2001", boatName: "Garuda", boatLocation: "Slip B-24", marinaLocation: "Spice Isle Marina", clientPhone: "473-444-1111", techs: ["William"], scopeOfWork: "Troubleshoot house bank alternator charging failure. Isolate secondary regulator." },
-            { id: "EAN-2002", boatName: "Skyler", boatLocation: "Main Dock Anchorage", marinaLocation: "Prickly Bay", clientPhone: "473-444-2222", techs: ["William"], scopeOfWork: "Calibrate newly fitted wind transducer instrument network." }
+            { id: "EAN-2001", boatName: "Garuda", boatOwner: "Captain Peterson", boatLocation: "Slip B-24", marinaLocation: "Spice Isle Marina", clientPhone: "473-444-1111", techs: ["William", "Garuda"], scopeOfWork: "Troubleshoot house bank alternator charging failure. Isolate secondary regulator." },
+            { id: "EAN-2002", boatName: "Skyler", boatOwner: "Alistair Vance", boatLocation: "Main Dock Anchorage", marinaLocation: "Prickly Bay", clientPhone: "473-444-2222", techs: ["William"], scopeOfWork: "Calibrate newly fitted wind transducer instrument network." }
         ];
 
         let technicians = [
-            { name: "Garuda", rate: 65 },
-            { name: "William", rate: 60 },
-            { name: "Skyler", rate: 55 }
+            { name: "Garuda", rate: 65, matesRate: 50 },
+            { name: "William", rate: 60, matesRate: 45 },
+            { name: "Skyler", rate: 55, matesRate: 40 }
         ];
 
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
             const dispatchJobId = urlParams.get('dispatchJobId');
 
-            // Intercept and route directly to mobile log view if parameters are present
             if (dispatchJobId) {
                 const embeddedJob = {
                     id: dispatchJobId,
                     boatName: urlParams.get('boat') || "Active Job",
+                    boatOwner: urlParams.get('owner') || "Not Specified",
+                    clientPhone: urlParams.get('phone') || "Not Specified",
                     boatLocation: urlParams.get('bLoc') || "Marine Area",
                     marinaLocation: urlParams.get('mLoc') || "Specified Marina",
                     scopeOfWork: urlParams.get('scope') || "Review tasks with administrator."
                 };
                 initTechMobileView(embeddedJob);
             } else {
-                // Otherwise build standard administrative console layouts
-                renderTechOptions();
-                renderTechTable();
-                renderJobsTable();
-                
-                if (localStorage.getItem('matesRates') === 'true') {
-                    document.getElementById('matesRates').checked = true;
-                }
+                refreshAdminUI();
             }
         };
+
+        function refreshAdminUI() {
+            renderTechOptions();
+            renderTechTable();
+            renderJobsTable();
+            populateInvoiceJobSelect();
+            calculateInvoice();
+        }
 
         function openTab(evt, tabName) {
             let tabcontent = document.getElementsByClassName("tab-content");
@@ -369,6 +432,7 @@
                 tr.innerHTML = `
                     <td><strong>${job.id}</strong></td>
                     <td>${job.boatName}</td>
+                    <td>${job.boatOwner || 'N/A'}</td>
                     <td>${job.boatLocation}</td>
                     <td>${job.marinaLocation}</td>
                     <td>${job.techs.join(', ')}</td>
@@ -386,7 +450,7 @@
             technicians.forEach(tech => {
                 const label = document.createElement('label');
                 label.className = 'multi-select-option';
-                label.innerHTML = `<input type="checkbox" name="assignedTechs" value="${tech.name}"> ${tech.name} ($${tech.rate}/hr)`;
+                label.innerHTML = `<input type="checkbox" name="assignedTechs" value="${tech.name}"> ${tech.name} (Std: $${tech.rate} / Mates: $${tech.matesRate})`;
                 container.appendChild(label);
             });
         }
@@ -394,34 +458,51 @@
         function renderTechTable() {
             const tbody = document.getElementById('techTableBody');
             tbody.innerHTML = '';
-            technicians.forEach(tech => {
+            technicians.forEach((tech, index) => {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${tech.name}</td><td>$${tech.rate}/hr</td>`;
+                tr.innerHTML = `
+                    <td>${tech.name}</td>
+                    <td>$${tech.rate}/hr</td>
+                    <td>$${tech.matesRate}/hr</td>
+                    <td><button class="btn-danger" onclick="deleteTechnician(${index})">Delete</button></td>
+                `;
                 tbody.appendChild(tr);
+            });
+        }
+
+        function populateInvoiceJobSelect() {
+            const select = document.getElementById('invoiceJobSelect');
+            select.innerHTML = '';
+            jobs.forEach(job => {
+                const opt = document.createElement('option');
+                opt.value = job.id;
+                opt.innerText = `${job.id} - ${job.boatName} (${job.boatOwner})`;
+                select.appendChild(opt);
             });
         }
 
         function addJobCard(e) {
             e.preventDefault();
+            // Pull selections from multiple chosen checkboxes
             const selectedTechs = Array.from(document.querySelectorAll('input[name="assignedTechs"]:checked')).map(el => el.value);
 
             const newJob = {
                 id: "EAN-" + (2000 + jobs.length + 1),
                 boatName: document.getElementById('boatName').value,
+                boatOwner: document.getElementById('boatOwner').value,
+                clientPhone: document.getElementById('clientPhone').value,
                 boatLocation: document.getElementById('boatLocation').value,
                 marinaLocation: document.getElementById('marinaLocation').value,
-                clientPhone: document.getElementById('clientPhone').value,
                 techs: selectedTechs.length > 0 ? selectedTechs : ["Unassigned"],
                 scopeOfWork: document.getElementById('scopeOfWork').value
             };
 
             jobs.push(newJob);
-            renderJobsTable();
             document.getElementById('jobForm').reset();
+            refreshAdminUI();
             
-            // Switch view back to Dashboard tab automatically
             let tablinks = document.getElementsByClassName("tab-link");
-            tablinks[0].click();
+            tablinks[0].click(); // Route view to Dashboard
 
             dispatchJob(newJob.id);
         }
@@ -430,27 +511,73 @@
             e.preventDefault();
             const name = document.getElementById('techName').value;
             const rate = parseFloat(document.getElementById('techRate').value);
+            const matesRate = parseFloat(document.getElementById('techMatesRate').value);
 
-            technicians.push({ name, rate });
-            renderTechOptions();
-            renderTechTable();
+            technicians.push({ name, rate, matesRate });
             document.getElementById('techForm').reset();
+            refreshAdminUI();
         }
 
-        function toggleMatesRates() {
-            localStorage.setItem('matesRates', document.getElementById('matesRates').checked);
+        function deleteTechnician(index) {
+            if(confirm(`Are you sure you want to remove ${technicians[index].name}?`)) {
+                technicians.splice(index, 1);
+                refreshAdminUI();
+            }
         }
 
-        // GENERATE DATA LINK PACKET FOR WHATSAPP / QR SCANNING
+        function calculateInvoice() {
+            const jobId = document.getElementById('invoiceJobSelect').value;
+            const rateType = document.getElementById('invoiceRateType').value;
+            const totalHours = parseFloat(document.getElementById('invoiceHours').value) || 0;
+
+            const job = jobs.find(j => j.id === jobId);
+            if (!job) return;
+
+            document.getElementById('invBoat').innerText = job.boatName;
+            document.getElementById('invOwner').innerText = job.boatOwner;
+            document.getElementById('invTechs').innerText = job.techs.join(', ');
+
+            const tbody = document.getElementById('invoiceTableBody');
+            tbody.innerHTML = '';
+
+            let finalInvoiceTotal = 0;
+
+            // Compute lines evenly distributed across all assigned operational technicians
+            job.techs.forEach(techName => {
+                const techObj = technicians.find(t => t.name === techName);
+                const activeRate = techObj ? (rateType === 'mates' ? techObj.matesRate : techObj.rate) : 60; 
+                const lineTotal = totalHours * activeRate;
+                finalInvoiceTotal += lineTotal;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>Marine Electrical Services (${techName})</td>
+                    <td>${totalHours}</td>
+                    <td>$${activeRate}.00 / hr (${rateType})</td>
+                    <td><strong>$${lineTotal.toFixed(2)}</strong></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Total Summary Row
+            const totalTr = document.createElement('tr');
+            totalTr.innerHTML = `
+                <td colspan="3" style="text-align: right; font-weight: bold;">Invoice Total Balance Due (XCD/USD):</td>
+                <td style="background: #e9ecef; font-size: 18px; color: #28a745;"><strong>$${finalInvoiceTotal.toFixed(2)}</strong></td>
+            `;
+            tbody.appendChild(totalTr);
+        }
+
         function dispatchJob(jobId) {
             const job = jobs.find(j => j.id === jobId);
             if (!job) return;
 
             const baseUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
             
-            // Safe URL construction carrying payload strings straight to browser address bars
             const targetDispatchUrl = `${baseUrl}?dispatchJobId=${encodeURIComponent(job.id)}` +
                                       `&boat=${encodeURIComponent(job.boatName)}` +
+                                      `&owner=${encodeURIComponent(job.boatOwner || '')}` +
+                                      `&phone=${encodeURIComponent(job.clientPhone || '')}` +
                                       `&bLoc=${encodeURIComponent(job.boatLocation)}` +
                                       `&mLoc=${encodeURIComponent(job.marinaLocation)}` +
                                       `&scope=${encodeURIComponent(job.scopeOfWork)}`;
@@ -480,18 +607,17 @@
             document.getElementById('qrModal').style.display = 'none';
         }
 
-        // DISPATCH INITIALIZATION ON WORKER PHONE
         function initTechMobileView(jobData) {
             document.body.classList.add('mobile-mode');
             
-            // Set elements on the UI
             document.getElementById('viewBoatName').innerText = jobData.boatName;
             document.getElementById('viewJobId').innerText = jobData.id;
+            document.getElementById('viewBoatOwner').innerText = jobData.boatOwner;
+            document.getElementById('viewClientPhone').innerText = jobData.clientPhone;
             document.getElementById('viewBoatLocation').innerText = jobData.boatLocation;
             document.getElementById('viewMarinaLocation').innerText = jobData.marinaLocation;
             document.getElementById('viewScopeOfWork').innerText = jobData.scopeOfWork;
 
-            // Load original active personnel registry items to selection array lists
             const select = document.getElementById('workerSelect');
             select.innerHTML = '<option value="" disabled selected>Select Your Name...</option>';
             technicians.forEach(tech => {
@@ -506,9 +632,7 @@
             e.preventDefault();
             const tech = document.getElementById('workerSelect').value;
             const hours = document.getElementById('hoursWorked').value;
-            const comments = document.getElementById('workDone').value;
-
-            alert(`Logged successfully!\nWorker: ${tech}\nHours: ${hours}\nData transmitted to server logs cleanly.`);
+            alert(`Logged successfully!\nWorker: ${tech}\nHours: ${hours}\nData transmitted cleanly.`);
             document.getElementById('hoursForm').reset();
         }
     </script>

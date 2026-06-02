@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spice Isle Marine Electrical - Operations Console</title>
+    <title>Ea Ninti Enterprises - Operations Console</title>
     <!-- Include QR Code Library for generating dispatch links -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
@@ -20,7 +20,7 @@
 
         /* Layout Layouts */
         #sidebar { width: 260px; background-color: var(--primary-color); color: white; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
-        #sidebar h2 { font-size: 1.2rem; margin-bottom: 20px; border-bottom: 2px solid var(--secondary-color); padding-bottom: 10px; text-align: center; }
+        #sidebar h2 { font-size: 1.1rem; margin-bottom: 20px; border-bottom: 2px solid var(--secondary-color); padding-bottom: 10px; text-align: center; }
         .nav-btn { background: none; border: none; color: white; text-align: left; padding: 12px; font-size: 1rem; cursor: pointer; border-radius: 4px; transition: 0.2s; }
         .nav-btn:hover, .nav-btn.active { background-color: var(--secondary-color); }
         
@@ -71,7 +71,7 @@
 
     <!-- SIDEBAR NAVIGATION (Admin Only) -->
     <div id="sidebar" class="admin-only">
-        <h2>Spice Isle Marine</h2>
+        <h2>Ea Ninti Enterprises</h2>
         <button class="nav-btn active" onclick="switchView('dashboard-view')">📋 Job Dashboard</button>
         <button class="nav-btn" onclick="switchView('create-job-view')">➕ Create Job Card</button>
         <button class="nav-btn" onclick="switchView('settings-view')">⚙️ Settings & Rates</button>
@@ -113,11 +113,11 @@
                     </div>
                     <div class="form-group">
                         <label>Marina / Vessel Location</label>
-                        <input type="text" id="form-location" required placeholder="e.g. Spice Isle Marina - Slip 14">
+                        <input type="text" id="form-location" required placeholder="e.g. Marina Slip Location">
                     </div>
                     <div class="form-group">
                         <label>Client Contact Number</label>
-                        <input type="text" id="form-client-phone" required placeholder="e.g. +1 (473) 444-1234">
+                        <input type="text" id="form-client-phone" required placeholder="e.g. Client Phone Number">
                     </div>
                     <div class="form-group">
                         <label>Assign Technicians (Select All That Apply)</label>
@@ -127,7 +127,7 @@
                     </div>
                     <div class="form-group">
                         <label>Scope of Work Description</label>
-                        <textarea id="form-scope" rows="3" placeholder="Describe electrical issues or system installations..."></textarea>
+                        <textarea id="form-scope" rows="3" placeholder="Describe work scope or system requirements..."></textarea>
                     </div>
                     <button type="submit" class="btn-primary">Generate & Dispatch Job</button>
                 </form>
@@ -164,10 +164,10 @@
             </div>
         </div>
 
-        <!-- TECHNICIAN MOBILE VIEW (Loads via Dispatch Link parameters) -->
+        <!-- TECHNICIAN MOBILE VIEW -->
         <div id="tech-mobile-view" class="view-section tech-only">
             <h1 style="font-size: 1.5rem; text-align: center; border-bottom: 2px solid var(--primary-color); padding-bottom: 10px;">
-                🛠️ Marine Service Dispatch
+                🛠️ Service Dispatch Console
             </h1>
             
             <div class="card" style="margin-top: 15px;">
@@ -193,7 +193,7 @@
                     </div>
                     <div class="form-group">
                         <label>Work Log Comments</label>
-                        <textarea id="mobile-work-notes" rows="2" placeholder="Describe actions taken, items replaced..."></textarea>
+                        <textarea id="mobile-work-notes" rows="2" placeholder="Describe actions taken, progress made..."></textarea>
                     </div>
                     <button type="submit" class="btn-primary" style="width: 100%;">Submit Hours to Master File</button>
                 </form>
@@ -202,16 +202,15 @@
 
     </div>
 
-    <!-- DISPATCH MODAL (QR Code + Manual Direct Text Link) -->
+    <!-- DISPATCH MODAL -->
     <div id="qr-modal" class="modal">
         <div class="modal-content">
             <span class="close-modal" onclick="closeQrModal()">&times;</span>
-            <h3 style="margin-bottom: 15px; color: var(--primary-color);">Dispatch Technician Link</h3>
+            <h3 style="margin-bottom: 15px; color: var(--primary-color);">Ea Ninti Dispatch Link</h3>
             
-            <!-- Target container for generated QR Code asset -->
             <div id="qrcode" style="display: flex; justify-content: center; margin: 20px 0;"></div>
             
-            <p style="font-size: 0.85rem; color: #555;">Scan with mobile device camera or copy the direct deployment link below to text/WhatsApp the technician:</p>
+            <p style="font-size: 0.85rem; color: #555;">Scan with camera or copy the dispatch link below to send straight to your technician via WhatsApp:</p>
             
             <div class="link-share-box">
                 <input type="text" id="shareable-link-input" readonly>
@@ -221,10 +220,10 @@
     </div>
 
     <script>
-        // Core Mock Data Store (Emulates cloud/Sheets database syncing structures)
+        // Core Mock Data Store
         let jobs = [
-            { id: "J-1001", boat: "Salty Dawg", location: "Grenada Yacht Club - Dock B", clientPhone: "+14731112222", techs: ["Dave", "Marcus"], scope: "Troubleshoot house battery bank charging issue; test alternator output profile." },
-            { id: "J-1002", boat: "Wind Dancer", location: "Prickly Bay Marina", clientPhone: "+14733334444", techs: ["Dave"], scope: "Install updated Raymarine chartplotter and interface backbone connection wire." }
+            { id: "J-1001", boat: "Salty Dawg", location: "Marina Dock B", clientPhone: "+14731112222", techs: ["Dave", "Marcus"], scope: "Troubleshoot house battery bank charging issue; test alternator output profile." },
+            { id: "J-1002", boat: "Wind Dancer", location: "Local Marina Bay", clientPhone: "+14733334444", techs: ["Dave"], scope: "Install updated chartplotter and interface backbone connection wire." }
         ];
 
         let technicians = [
@@ -233,20 +232,24 @@
             { name: "Sarah", rate: 70 }
         ];
 
-        // Routing Logic: Checks instantly on page layout lifecycle initialization
         window.onload = function() {
             const urlParams = new URLSearchParams(window.location.search);
             const dispatchJobId = urlParams.get('dispatchJobId');
 
+            // Handle direct tech routing with url parameters data injection
             if (dispatchJobId) {
-                enterTechMobileMode(dispatchJobId);
+                const jobData = {
+                    id: dispatchJobId,
+                    boat: urlParams.get('boat') || "Active Job",
+                    location: urlParams.get('loc') || "Assigned Marine Site",
+                    scope: urlParams.get('scope') || "Check with admin for full scope details."
+                };
+                enterTechMobileMode(jobData);
             } else {
-                // Initialize default administrative views cleanly
                 renderTechCheckboxes();
                 renderTechConfigTable();
                 renderJobsTable();
                 
-                // Retain state configurations if saved to browser
                 if(localStorage.getItem('matesRates') === 'true') {
                     document.getElementById('cfg-mates-rates').checked = true;
                 }
@@ -258,10 +261,9 @@
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             
             document.getElementById(viewId).classList.add('active');
-            event.target.classList.add('active');
+            if(event && event.target) event.target.classList.add('active');
         }
 
-        // Admin Management Actions
         function renderJobsTable() {
             const tbody = document.getElementById('jobs-list-body');
             tbody.innerHTML = "";
@@ -318,8 +320,6 @@
             renderJobsTable();
             document.getElementById('job-form').reset();
             switchView('dashboard-view');
-            
-            // Pop dispatch interface immediately for ease of workflow operations
             generateDispatchAsset(newJob.id);
         }
 
@@ -338,27 +338,26 @@
             localStorage.setItem('matesRates', document.getElementById('cfg-mates-rates').checked);
         }
 
-        // DYNAMIC LINK & QR DISPATCH COMPONENT
+        // GENERATES DATA-PACKED DYNAMIC LINK
         function generateDispatchAsset(jobId) {
             const job = jobs.find(j => j.id === jobId);
             if (!job) return;
 
-            // Step 1: Detect base live environment cleanly on GitHub Pages or locally
             const baseUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
             
-            // Step 2: Inject explicit target parameters ensuring state routing triggers
-            const directDispatchUrl = `${baseUrl}?dispatchJobId=${encodeURIComponent(job.id)}`;
+            const directDispatchUrl = `${baseUrl}?dispatchJobId=${encodeURIComponent(job.id)}` + 
+                                      `&boat=${encodeURIComponent(job.boat)}` + 
+                                      `&loc=${encodeURIComponent(job.location)}` + 
+                                      `&scope=${encodeURIComponent(job.scope)}`;
 
-            // Set content to layout elements
             document.getElementById('shareable-link-input').value = directDispatchUrl;
             document.getElementById('qrcode').innerHTML = "";
 
-            // Step 3: Render native asset
             new QRCode(document.getElementById("qrcode"), {
                 text: directDispatchUrl,
                 width: 180,
                 height: 180,
-                correctLevel: QRCode.CorrectLevel.H
+                correctLevel: QRCode.CorrectLevel.M
             });
 
             document.getElementById('qr-modal').style.display = 'flex';
@@ -369,37 +368,26 @@
             linkInput.select();
             linkInput.setSelectionRange(0, 99999);
             navigator.clipboard.writeText(linkInput.value);
-            alert("Dispatch routing link copied! You can now send this straight via text or WhatsApp to your technician.");
+            alert("Ea Ninti routing link copied! You can now send this straight via WhatsApp.");
         }
 
         function closeQrModal() {
             document.getElementById('qr-modal').style.display = 'none';
         }
 
-        // TECHNICIAN ROUTER EXECUTION OVERRIDES
-        function enterTechMobileMode(jobId) {
+        // MOBILE PORTAL INITIALIZATION
+        function enterTechMobileMode(jobData) {
             document.body.classList.add('mobile-mode');
             
-            // Hide standard layouts, surface mobile structures explicitly
             document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active'));
             const techView = document.getElementById('tech-mobile-view');
             techView.classList.add('active');
 
-            // Find matching data profile assets 
-            const activeJob = jobs.find(j => j.id === jobId) || {
-                id: jobId,
-                boat: "Active Remote Dispatch Job",
-                location: "Assigned Remote Marine Site",
-                scope: "Syncing detailed instructions with cloud sheets profile matrix..."
-            };
+            document.getElementById('mobile-boat-title').innerText = jobData.boat;
+            document.getElementById('mobile-job-id').innerText = "Job ID: " + jobData.id;
+            document.getElementById('mobile-location').innerText = jobData.location;
+            document.getElementById('mobile-scope').innerText = jobData.scope;
 
-            // Populate view layer metrics
-            document.getElementById('mobile-boat-title').innerText = activeJob.boat;
-            document.getElementById('mobile-job-id').innerText = "Job ID: " + activeJob.id;
-            document.getElementById('mobile-location').innerText = activeJob.location;
-            document.getElementById('mobile-scope').innerText = activeJob.scope;
-
-            // Populate the dropdown selector list options inside form components
             const selectEl = document.getElementById('mobile-tech-select');
             selectEl.innerHTML = '<option value="" disabled selected>Choose your name...</option>';
             technicians.forEach(t => {
@@ -416,7 +404,7 @@
             const hours = document.getElementById('mobile-hours-input').value;
             const notes = document.getElementById('mobile-work-notes').value;
 
-            alert(`Success! Logged ${hours} hrs for ${tech}.\nData packet submitted cleanly to cloud repository records.`);
+            alert(`Success! Logged ${hours} hrs for ${tech}.\nData packet submitted safely.`);
             document.getElementById('hours-logging-form').reset();
         }
     </script>

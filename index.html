@@ -101,6 +101,31 @@
             <div class="tech-card" id="tech-card-render-zone">
                 <!-- Dynamic structural injection template from runtime JS engine -->
             </div>
+            
+            <!-- TECH LOGGING SIMULATOR INSIDE THE FIELD CARD VIEW -->
+            <div class="tech-card" style="border-top: 6px solid var(--success);">
+                <h3 style="margin-bottom: 10px;">Clock Hours for this Assignment</h3>
+                <div class="form-grid">
+                    <div>
+                        <label>Select Your Name</label>
+                        <select id="tech-clock-name-select"></select>
+                    </div>
+                    <div>
+                        <label>Hours Worked</label>
+                        <input type="number" id="tech-clock-hours-input" value="1.0" step="0.5" min="0.5">
+                    </div>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <label>Task Work Done / Progress Notes</label>
+                    <input type="text" id="tech-clock-desc-input" placeholder="e.g. Diagnosed battery short circuit, terminated lines">
+                </div>
+                <button class="btn btn-success" style="width:100%; margin-bottom: 10px;" onclick="techSubmitLogLocal()">Log Labor Hours to Phone memory</button>
+                <div id="tech-local-sync-qr-zone" style="display:none; text-align:center; margin-top:15px; border-top:1px solid #eee; padding-top:15px;">
+                    <p style="font-size:0.85rem; margin-bottom:10px; color:var(--secondary); font-weight:bold;">Show this QR Code to Admin to Sync Hours:</p>
+                    <div id="tech-sync-qrcode-target" style="display:inline-block; padding:10px; background:white;"></div>
+                </div>
+            </div>
+
             <button class="btn btn-danger" style="width:100%; padding:14px;" onclick="exitTechModeFileSystem()">Return to Master Console Admin</button>
         </div>
 
@@ -190,8 +215,17 @@
         <div id="sync-view" class="view">
             <h1>Scan Technician Phone</h1>
             <p style="margin-bottom: 15px;">When your tech returns to the office or sends a screenshot, scan their sync QR code here to import hours.</p>
-            <div class="card">
-                <div id="reader" style="width: 100%; max-width: 500px; margin: 0 auto;"></div>
+            <div class="card" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <h4>Live Video Scanner Feed</h4>
+                    <div id="reader" style="width: 100%; background: #000; border-radius: 8px; overflow: hidden; margin-top:10px;"></div>
+                </div>
+                <div style="border-left: 1px solid #ccc; padding-left: 20px;">
+                    <h4>Manual Backup Payload Entry</h4>
+                    <p style="font-size: 0.85rem; margin-bottom: 10px; color:#666;">If your system does not have an active camera attachment, paste the QR raw string contents here:</p>
+                    <textarea id="manual-qr-payload-input" rows="6" placeholder='{"type":"SYNC_HOURS","data":[...]}' style="font-family: monospace; font-size: 0.85rem;"></textarea>
+                    <button class="btn btn-success" style="width:100%; margin-top:10px;" onclick="processManualPayloadImport()">Parse & Sync Manual Logs</button>
+                </div>
             </div>
         </div>
 
@@ -333,7 +367,7 @@
     <div id="qr-modal">
         <div class="modal-content">
             <h2 style="color:var(--primary);">Technician Job Dispatch</h2>
-            <p style="margin: 10px 0; font-size:0.9rem; color:#555;">Let the technician scan this card using their smartphone camera to directly switch their local view screen to the active digital work ticket.</p>
+            <p style="margin: 10px 0; font-size:0.9rem; color:#555;">Have the tech scan this code with their <strong>phone's normal camera app</strong> to pull up this job card instantly.</p>
             <div id="qrcode" style="display:flex; justify-content:center; margin:20px 0; padding:10px; background:white; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.1);"></div>
             <button class="btn btn-success" style="width:100%; margin-bottom:8px;" onclick="simulateTechScanningLink()">Simulate Device Scan (Test View)</button>
             <button class="btn btn-danger" style="width:100%;" onclick="closeModal()">Close / Return</button>
@@ -354,6 +388,7 @@
         let companyContact = localStorage.getItem('m_c_cont') || "Email: service@spiceislemarine.com";
         
         let currentActiveQrJobTarget = null;
+        let activeTechModeJobId = null;
 
         let technicians = JSON.parse(localStorage.getItem('m_techs_v2')) || [
             {name: "Devon", stdRate: 65, matesRate: 45},
@@ -365,20 +400,19 @@
             "B&G / Raymarine Electronics", "Bilge / Pump Wiring", "Generator / AC Systems"
         ];
         
-        let qrScanner;
+        let qrScanner = null;
 
         function switchView(viewId) {
-            // Remove active classes cleanly from all workspaces
+            if(viewId !== 'sync-view') {
+                stopScanner();
+            }
+
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            
-            // Explicitly clear active style state across ALL navbar buttons to prevent ghost selections
             document.querySelectorAll('#admin-sidebar button').forEach(b => b.classList.remove('active'));
             
-            // Show target workspace panel
             const targetView = document.getElementById(viewId);
             if(targetView) targetView.classList.add('active');
             
-            // Match up highlight explicitly to the corrected navbar element structure
             const targetNavBtn = document.getElementById('btn-' + viewId);
             if(targetNavBtn) targetNavBtn.classList.add('active');
             
@@ -388,7 +422,9 @@
                 calculateTechFinancialSummary();
             }
             if(viewId === 'invoice-view') onInvoiceVesselChange();
-            if(viewId === 'sync-view') startScanner(); else stopScanner();
+            if(viewId === 'sync-view') {
+                setTimeout(startScanner, 150);
+            }
         }
 
         /* ROUTE CONTROLLER FOR THE CLEAN FIELD VIEW */
@@ -396,7 +432,7 @@
             const job = jobs.find(j => j.id === jobId);
             if(!job) return;
 
-            // Activate Mobile Stylesheet Configurations
+            activeTechModeJobId = jobId;
             document.body.classList.add('tech-mode');
             document.getElementById('admin-sidebar').style.display = 'none';
             document.getElementById('tech-header-banner').innerText = `${companyName} • Field Operations`;
@@ -406,7 +442,6 @@
             if(job.status === "In Progress") statusColor = "#0077b6";
             if(job.status === "Complete") statusColor = "#2a9d8f";
 
-            // Process dynamic build clean job card output parameters
             const container = document.getElementById('tech-card-render-zone');
             container.innerHTML = `
                 <h2>
@@ -433,12 +468,55 @@
                 </div>
             `;
 
+            const clockNameDropdown = document.getElementById('tech-clock-name-select');
+            clockNameDropdown.innerHTML = job.techs ? job.techs.map(t => `<option value="${t}">${t}</option>`).join('') : '';
+            
+            document.getElementById('tech-local-sync-qr-zone').style.display = 'none';
             switchView('tech-card-view');
+        }
+
+        /* TECH GENERATES LOG LINES LOCAL TO SMARTPHONE CONTAINER SPACE */
+        function techSubmitLogLocal() {
+            if(!activeTechModeJobId) return;
+            const techName = document.getElementById('tech-clock-name-select').value;
+            const hoursVal = parseFloat(document.getElementById('tech-clock-hours-input').value) || 0;
+            const descVal = document.getElementById('tech-clock-desc-input').value.trim() || "Performed electrical repairs";
+
+            if(hoursVal <= 0) { alert("Enter positive timeline metrics."); return; }
+
+            let localLogs = JSON.parse(localStorage.getItem('m_logs')) || [];
+            const newLogBlock = {
+                timestamp: Date.now() + Math.random(), 
+                jobId: activeTechModeJobId,
+                tech: techName,
+                hrs: hoursVal,
+                desc: descVal
+            };
+            
+            localLogs.push(newLogBlock);
+            localStorage.setItem('m_logs', JSON.stringify(localLogs));
+            timeLogs = localLogs; 
+
+            document.getElementById('tech-local-sync-qr-zone').style.display = 'block';
+            document.getElementById('tech-sync-qrcode-target').innerHTML = '';
+            new QRCode(document.getElementById('tech-sync-qrcode-target'), {
+                text: JSON.stringify({type: "SYNC_HOURS", data: localLogs.filter(l => l.jobId === activeTechModeJobId)}),
+                width: 180,
+                height: 180
+            });
+
+            alert("Hours added successfully to device memory! Present the generated QR code to the office admin scanner below to update invoices.");
         }
 
         function exitTechModeFileSystem() {
             document.body.classList.remove('tech-mode');
             document.getElementById('admin-sidebar').style.display = 'flex';
+            
+            // Clean up the URL query parameter when exiting tech mode
+            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            window.history.replaceState({path: cleanUrl}, '', cleanUrl);
+            
+            activeTechModeJobId = null;
             switchView('jobs-view');
         }
 
@@ -580,8 +658,8 @@
                 const job = {
                     id: 'J-' + Math.floor(1000 + Math.random() * 9000),
                     boat: document.getElementById('boat-name').value,
-                    clientName: document.getElementById('client-name').value,
-                    clientContact: document.getElementById('client-contact').value,
+                    clientName = document.getElementById('client-name').value,
+                    clientContact = document.getElementById('client-contact').value,
                     loc: document.getElementById('location').value + (document.getElementById('slip').value ? " (" + document.getElementById('slip').value + ")" : ""),
                     techs: selectedTechs,
                     sys: document.getElementById('system-type').value,
@@ -640,8 +718,12 @@
             currentActiveQrJobTarget = jobId;
             document.getElementById('qrcode').innerHTML = "";
             
+            // BUILD A REAL INTERNET URL POINTER SO A TECH'S CAMERA OPENS THE SITE
+            const baseUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            const dispatchUrl = `${baseUrl}?dispatchJobId=${job.id}`;
+            
             new QRCode(document.getElementById("qrcode"), { 
-                text: JSON.stringify({type: "FIELD_DISPATCH", jobId: job.id}), 
+                text: dispatchUrl, 
                 width: 200, 
                 height: 200 
             });
@@ -833,29 +915,96 @@
         }
 
         /* ------------------ DISPATCH SYNC CAMERA ENGINE ------------------ */
-        function startScanner() {
-            qrScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
-            qrScanner.render((text) => {
-                try {
-                    let payload = JSON.parse(text);
-                    if(payload.type === "FIELD_DISPATCH") {
-                        stopScanner();
-                        enterTechMobileMode(payload.jobId);
-                    } else if(payload.type === "SYNC_HOURS") {
-                        payload.data.forEach(newLog => {
-                            if(!timeLogs.some(l => l.timestamp === newLog.timestamp)) timeLogs.push(newLog);
-                        });
-                        localStorage.setItem('m_logs', JSON.stringify(timeLogs));
-                        alert("Sync complete: Technician timeline data imported successfully.");
-                        switchView('invoice-view');
+        function handleIncomingDecodedPayload(text) {
+            try {
+                // If the technician inadvertently scans an operational web link inside the sync layout, catch and extract parameters safely
+                if (text.includes('?dispatchJobId=')) {
+                    stopScanner();
+                    const urlParams = new URLSearchParams(text.split('?')[1]);
+                    const jobId = urlParams.get('dispatchJobId');
+                    if(jobId) {
+                        setTimeout(() => enterTechMobileMode(jobId), 250);
+                        return;
                     }
-                } catch(e) { alert("Format verification failed."); }
-            });
+                }
+
+                let payload = JSON.parse(text);
+                
+                if (payload.type === "FIELD_DISPATCH") {
+                    stopScanner();
+                    setTimeout(() => enterTechMobileMode(payload.jobId), 250);
+                } 
+                else if (payload.type === "SYNC_HOURS") {
+                    stopScanner();
+                    
+                    payload.data.forEach(newLog => {
+                        if(!timeLogs.some(l => l.timestamp === newLog.timestamp)) {
+                            timeLogs.push(newLog);
+                        }
+                    });
+                    
+                    localStorage.setItem('m_logs', JSON.stringify(timeLogs));
+                    alert("Import successful! Technician labor log history synced with master engine data.");
+                    
+                    setTimeout(() => {
+                        switchView('invoice-view');
+                        if(payload.data.length > 0 && document.getElementById('invoice-job-select')) {
+                            document.getElementById('invoice-job-select').value = payload.data[0].jobId;
+                            onInvoiceVesselChange();
+                        }
+                    }, 300);
+                }
+            } catch(e) { 
+                alert("Unrecognized string format. Verify data packet encoding integrity."); 
+            }
         }
-        function stopScanner() { if(qrScanner) qrScanner.clear(); }
+
+        function processManualPayloadImport() {
+            const rawText = document.getElementById('manual-qr-payload-input').value.trim();
+            if(!rawText) return;
+            handleIncomingDecodedPayload(rawText);
+            document.getElementById('manual-qr-payload-input').value = '';
+        }
+
+        function startScanner() {
+            if(qrScanner) {
+                stopScanner();
+            }
+            
+            const readerElement = document.getElementById("reader");
+            if (!readerElement) return;
+
+            qrScanner = new Html5QrcodeScanner("reader", { 
+                fps: 15, 
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0
+            }, false);
+            
+            qrScanner.render(
+                (decodedText) => handleIncomingDecodedPayload(decodedText),
+                (error) => { }
+            );
+        }
+
+        function stopScanner() { 
+            if (qrScanner) {
+                qrScanner.clear().catch(err => console.log("Scanner closure delayed safely."));
+                qrScanner = null;
+            } 
+        }
         
         window.onload = function() { 
             initProfileDisplay(); renderJobs(); populateDropdowns(); calculateTechFinancialSummary();
+            
+            // CHECK URL PARAMETERS ON INITIAL LOAD FOR INBOUND WEB LINK CODES
+            const urlParams = new URLSearchParams(window.location.search);
+            const initialDispatchId = urlParams.get('dispatchJobId');
+            if (initialDispatchId) {
+                // Ensure job template storage caches exist locally before showing ticket interface
+                setTimeout(() => {
+                    enterTechMobileMode(initialDispatchId);
+                }, 300);
+            }
         }
     </script>
 </body>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ea Ninti Enterprises - Modern Dashboard</title>
+    <title>EaNintiApp3 - Modern Dashboard</title>
     <script src="https://unpkg.com/qrcodejs@1.0.0/qrcode.min.js"></script>
     <style>
         :root {
@@ -404,11 +404,11 @@
 </head>
 <body>
 
-    <!-- BRANDING BANNER (ADMIN ONLY CONTAINER) -->
+    <!-- BRANDING BANNER -->
     <div class="brand-header" id="adminHeaderWidget">
         <div>
-            <h1>Ea Ninti Enterprises</h1>
-            <div class="subtitle">Marine Electrical and Electronic Engineering</div>
+            <h1>EaNintiApp3</h1>
+            <div class="subtitle">Ea Ninti Enterprises Ops Console</div>
         </div>
         <div>
             <span class="badge badge-primary" style="padding: 6px 12px;">Admin Session Master</span>
@@ -632,7 +632,7 @@
             </div>
         </div>
 
-        <!-- TECHNICIAN MOBILE DISPATCH HUB (ISOLATED BASE ELEMENT) -->
+        <!-- TECHNICIAN MOBILE DISPATCH HUB -->
         <div id="HoursLogging" class="tech-only">
             <h1 style="text-align: center; border-bottom: 2px solid var(--primary); padding-bottom: 10px; color: var(--primary);">Ea Ninti Enterprises - Tech Portal</h1>
             
@@ -649,7 +649,7 @@
                 <p id="viewScopeOfWork" style="background: #f8f9fa; padding: 12px; border: 1px solid var(--border); border-radius: 6px; white-space: pre-wrap; font-size: 14px;">--</p>
             </div>
 
-            <h3 style="color: var(--primary);">Log Task & Operations Time</h3>
+            <h3>Log Task & Operations Time</h3>
             <form id="hoursForm">
                 <div class="form-group">
                     <label for="workerSelect">Select Your Profile Name:</label>
@@ -661,7 +661,7 @@
                 </div>
                 <div class="form-group">
                     <label for="workDone">Engineering Narrative / Work Executed:</label>
-                    <textarea id="workDone" rows="4" required placeholder="Describe repairs executed, parts replaced..."></textarea>
+                    <textarea id="workDone" rows="4" required placeholder="Describe repairs executed..."></textarea>
                 </div>
                 <button type="submit" style="width: 100%; background-color: #28a745; padding: 12px; font-size: 16px; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">Transmit Operational Log</button>
             </form>
@@ -683,18 +683,19 @@
     </div>
 
     <script>
-        let jobs = [
-            { id: "EAN-2001", boatName: "Garuda", boatOwner: "Captain Peterson", type: "Electrical Repair", appointment: "2026-06-05T09:00", boatLocation: "Slip B-24", marinaLocation: "Clarkes Court Bay", clientPhone: "473-444-1111", techs: [{name: "William", rateProfile: "standard"}, {name: "Garuda", rateProfile: "mates"}], scopeOfWork: "Troubleshoot house bank alternator charging failure. Isolate secondary regulator matrix." },
-            { id: "EAN-2002", boatName: "Skyler", boatOwner: "Alistair Vance", type: "Electronics Install", appointment: "2026-06-06T13:30", boatLocation: "Main Dock Anchorage", marinaLocation: "Prickly Bay", clientPhone: "473-444-2222", techs: [{name: "William", rateProfile: "standard"}], scopeOfWork: "Calibrate newly fitted wind transducer instrument and backbone network links." }
+        // PERSISTENCE ENGINE: Check if local storage versions exist, otherwise pull back defaults
+        let defaultJobs = [
+            { id: "EAN-2001", boatName: "Garuda", boatOwner: "Captain Peterson", type: "Electrical Repair", appointment: "2026-06-05T09:00", boatLocation: "Slip B-24", marinaLocation: "Clarkes Court Bay", clientPhone: "473-444-1111", techs: [{name: "William", rateProfile: "standard"}, {name: "Garuda", rateProfile: "mates"}], scopeOfWork: "Troubleshoot house bank alternator charging failure." },
+            { id: "EAN-2002", boatName: "Skyler", boatOwner: "Alistair Vance", type: "Electronics Install", appointment: "2026-06-06T13:30", boatLocation: "Main Dock Anchorage", marinaLocation: "Prickly Bay", clientPhone: "473-444-2222", techs: [{name: "William", rateProfile: "standard"}], scopeOfWork: "Calibrate newly fitted wind transducer instrument." }
         ];
 
-        let technicians = [
+        let defaultTechs = [
             { name: "Garuda", rate: 65, matesRate: 50 },
             { name: "William", rate: 60, matesRate: 45 },
             { name: "Skyler", rate: 55, matesRate: 40 }
         ];
 
-        let jobTypes = [
+        let defaultJobTypes = [
             "Electrical Repair",
             "Electronics Install",
             "Maintenance / Service",
@@ -702,11 +703,22 @@
             "Solar / Charging Systems"
         ];
 
+        // Core App Data Setup
+        let jobs = JSON.parse(localStorage.getItem('marine_jobs')) || defaultJobs;
+        let technicians = JSON.parse(localStorage.getItem('marine_techs')) || defaultTechs;
+        let jobTypes = JSON.parse(localStorage.getItem('marine_job_types')) || defaultJobTypes;
+
         let currentInvoiceParts = [];
+
+        // Global Sync Engine
+        function syncToStorage() {
+            localStorage.setItem('marine_jobs', JSON.stringify(jobs));
+            localStorage.setItem('marine_techs', JSON.stringify(technicians));
+            localStorage.setItem('marine_job_types', JSON.stringify(jobTypes));
+        }
 
         document.addEventListener("DOMContentLoaded", function() {
             try {
-                // Handle tab binding
                 let tabButtons = document.querySelectorAll('#navTabsContainer .tab-link');
                 tabButtons.forEach(btn => {
                     btn.addEventListener('click', function() {
@@ -714,7 +726,6 @@
                     });
                 });
 
-                // Form bindings
                 let jobForm = document.getElementById('jobForm');
                 if (jobForm) jobForm.addEventListener('submit', saveJobCard);
 
@@ -745,7 +756,6 @@
                 let copyLinkBtn = document.getElementById('copyLinkBtn');
                 if (copyLinkBtn) copyLinkBtn.addEventListener('click', copyLink);
 
-                // PROCESS ROUTING ROUTINE
                 let urlParams = new URLSearchParams(window.location.search);
                 let dispatchJobId = urlParams.get('dispatchJobId');
 
@@ -868,6 +878,7 @@
             if(val && !jobTypes.includes(val)) {
                 jobTypes.push(val);
                 input.value = '';
+                syncToStorage();
                 refreshAdminUI();
             }
         }
@@ -875,6 +886,7 @@
         function deleteJobType(idx) {
             if(confirm(`Are you sure you want to remove the job category "${jobTypes[idx]}"?`)) {
                 jobTypes.splice(idx, 1);
+                syncToStorage();
                 refreshAdminUI();
             }
         }
@@ -1060,6 +1072,7 @@
         function deleteJobCard(jobId) {
             if (confirm(`Permanently remove job card ${jobId}?`)) {
                 jobs = jobs.filter(j => j.id !== jobId);
+                syncToStorage(); // Update Storage
                 refreshAdminUI();
             }
         }
@@ -1108,12 +1121,20 @@
                 if (index !== -1) jobs[index] = { id: editId, ...jobPayload };
                 resetJobForm();
             } else {
-                let newJob = { id: "EAN-" + (2000 + jobs.length + 1), ...jobPayload };
+                // Generate sequential numeric ID strictly based on total entries created to prevent conflicts
+                let nextNum = 2001;
+                if(jobs.length > 0) {
+                    let lastId = jobs[jobs.length - 1].id;
+                    let match = lastId.match(/\d+/);
+                    if(match) nextNum = parseInt(match[0]) + 1;
+                }
+                let newJob = { id: "EAN-" + nextNum, ...jobPayload };
                 jobs.push(newJob);
                 resetJobForm();
                 dispatchJob(newJob.id);
             }
 
+            syncToStorage(); // Commit array to storage
             refreshAdminUI();
             openTab('Dashboard', document.querySelector('[data-target="Dashboard"]'));
         }
@@ -1127,12 +1148,14 @@
             technicians.push({ name, rate, matesRate });
             let techForm = document.getElementById('techForm');
             if (techForm) techForm.reset();
+            syncToStorage(); // Update Storage
             refreshAdminUI();
         }
 
         function deleteTechnician(index) {
             if(confirm(`Remove technician profile for ${technicians[index].name}?`)) {
                 technicians.splice(index, 1);
+                syncToStorage(); // Update Storage
                 refreshAdminUI();
             }
         }
@@ -1142,7 +1165,6 @@
             if(!selectElement) return;
             
             let jobId = selectElement.value;
-            // CRITICAL INVOICING DEFENSIVE GUARD BLOCK: Stops script crash if no active records exist
             if(!jobId) {
                 document.getElementById('invBoat').innerText = "--";
                 document.getElementById('invOwner').innerText = "--";

@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ea Ninti Enterprises - Operations Console</title>
-    <!-- Include QR Code Library for generating dispatch links -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         :root {
@@ -18,7 +17,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-color); display: flex; height: 100vh; overflow: hidden; }
 
-        /* Layout Layouts */
+        /* Layout Styles */
         #sidebar { width: 260px; background-color: var(--primary-color); color: white; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
         #sidebar h2 { font-size: 1.1rem; margin-bottom: 20px; border-bottom: 2px solid var(--secondary-color); padding-bottom: 10px; text-align: center; }
         .nav-btn { background: none; border: none; color: white; text-align: left; padding: 12px; font-size: 1rem; cursor: pointer; border-radius: 4px; transition: 0.2s; }
@@ -69,7 +68,6 @@
 </head>
 <body>
 
-    <!-- SIDEBAR NAVIGATION (Admin Only) -->
     <div id="sidebar" class="admin-only">
         <h2>Ea Ninti Enterprises</h2>
         <button class="nav-btn active" onclick="switchView('dashboard-view')">📋 Job Dashboard</button>
@@ -77,10 +75,8 @@
         <button class="nav-btn" onclick="switchView('settings-view')">⚙️ Settings & Rates</button>
     </div>
 
-    <!-- MAIN INTERFACE DISPLAY -->
     <div id="main-content">
         
-        <!-- ADMIN VIEW: DASHBOARD -->
         <div id="dashboard-view" class="view-section active admin-only">
             <h1>Marine Operations Dashboard</h1>
             <div class="card">
@@ -96,13 +92,11 @@
                         </tr>
                     </thead>
                     <tbody id="jobs-list-body">
-                        <!-- Dynamic Data injection point -->
-                    </tbody>
+                        </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- ADMIN VIEW: CREATE NEW JOB CARD -->
         <div id="create-job-view" class="view-section admin-only">
             <h1>Create Job Card</h1>
             <div class="card" style="max-width: 600px;">
@@ -113,7 +107,7 @@
                     </div>
                     <div class="form-group">
                         <label>Marina / Vessel Location</label>
-                        <input type="text" id="form-location" required placeholder="e.g. Marina Slip Location">
+                        <input type="text" id="form-location" required placeholder="e.g. Marina & Slip Location">
                     </div>
                     <div class="form-group">
                         <label>Client Contact Number</label>
@@ -122,291 +116,3 @@
                     <div class="form-group">
                         <label>Assign Technicians (Select All That Apply)</label>
                         <div class="multi-select-box" id="form-tech-checkboxes">
-                            <!-- Injected dynamically from configurations -->
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Scope of Work Description</label>
-                        <textarea id="form-scope" rows="3" placeholder="Describe work scope or system requirements..."></textarea>
-                    </div>
-                    <button type="submit" class="btn-primary">Generate & Dispatch Job</button>
-                </form>
-            </div>
-        </div>
-
-        <!-- ADMIN VIEW: CONFIGURATIONS & RATES -->
-        <div id="settings-view" class="view-section admin-only">
-            <h1>Settings & Billing Controls</h1>
-            <div class="card" style="max-width: 500px;">
-                <h3>Technician Management</h3>
-                <form id="tech-rate-form" onsubmit="addTechnicianConfig(event)" style="margin-top: 10px; display: flex; gap: 10px; margin-bottom: 15px;">
-                    <input type="text" id="cfg-tech-name" placeholder="Tech Name" required>
-                    <input type="number" id="cfg-tech-rate" placeholder="Base Rate ($/hr)" required style="width: 120px;">
-                    <button type="submit" class="btn-primary" style="padding: 0 15px;">Add</button>
-                </form>
-                <table id="tech-config-table">
-                    <thead>
-                        <tr>
-                            <th>Technician</th>
-                            <th>Standard Rate</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tech-config-body"></tbody>
-                </table>
-            </div>
-            
-            <div class="card" style="max-width: 500px;">
-                <h3>Billing Variables</h3>
-                <div class="form-group" style="flex-direction: row; align-items: center; justify-content: space-between; margin-top: 10px;">
-                    <label for="cfg-mates-rates">Enable 'Mates Rates' Discretionary Discount</label>
-                    <input type="checkbox" id="cfg-mates-rates" style="width: auto;" onchange="saveBillingSettings()">
-                </div>
-            </div>
-        </div>
-
-        <!-- TECHNICIAN MOBILE VIEW -->
-        <div id="tech-mobile-view" class="view-section tech-only">
-            <h1 style="font-size: 1.5rem; text-align: center; border-bottom: 2px solid var(--primary-color); padding-bottom: 10px;">
-                🛠️ Service Dispatch Console
-            </h1>
-            
-            <div class="card" style="margin-top: 15px;">
-                <h2 id="mobile-boat-title" style="color: var(--primary-color); margin-bottom: 5px;">Boat Name</h2>
-                <p id="mobile-job-id" style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">Job ID: --</p>
-                
-                <p style="margin-bottom: 8px;">📍 <strong>Location:</strong> <span id="mobile-location">--</span></p>
-                <p style="margin-bottom: 15px;">📝 <strong style="display:block; margin-top:5px;">Scope of Work:</strong> <span id="mobile-scope">--</span></p>
-            </div>
-
-            <div class="card">
-                <h3>Log Action Hours</h3>
-                <form id="hours-logging-form" onsubmit="submitLoggedHours(event)" style="margin-top: 12px;">
-                    <div class="form-group">
-                        <label>Select Your Name</label>
-                        <select id="mobile-tech-select" required>
-                            <!-- Injected dynamically -->
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Hours Worked Today</label>
-                        <input type="number" step="0.25" id="mobile-hours-input" placeholder="e.g. 4.5" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Work Log Comments</label>
-                        <textarea id="mobile-work-notes" rows="2" placeholder="Describe actions taken, progress made..."></textarea>
-                    </div>
-                    <button type="submit" class="btn-primary" style="width: 100%;">Submit Hours to Master File</button>
-                </form>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- DISPATCH MODAL -->
-    <div id="qr-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeQrModal()">&times;</span>
-            <h3 style="margin-bottom: 15px; color: var(--primary-color);">Ea Ninti Dispatch Link</h3>
-            
-            <div id="qrcode" style="display: flex; justify-content: center; margin: 20px 0;"></div>
-            
-            <p style="font-size: 0.85rem; color: #555;">Scan with camera or copy the dispatch link below to send straight to your technician via WhatsApp:</p>
-            
-            <div class="link-share-box">
-                <input type="text" id="shareable-link-input" readonly>
-                <button onclick="copyGeneratedLink()" class="btn-primary" style="padding: 6px 12px; font-size: 0.85rem;">Copy</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Core Mock Data Store
-        let jobs = [
-            { id: "J-1001", boat: "Salty Dawg", location: "Marina Dock B", clientPhone: "+14731112222", techs: ["Dave", "Marcus"], scope: "Troubleshoot house battery bank charging issue; test alternator output profile." },
-            { id: "J-1002", boat: "Wind Dancer", location: "Local Marina Bay", clientPhone: "+14733334444", techs: ["Dave"], scope: "Install updated chartplotter and interface backbone connection wire." }
-        ];
-
-        let technicians = [
-            { name: "Dave", rate: 65 },
-            { name: "Marcus", rate: 55 },
-            { name: "Sarah", rate: 70 }
-        ];
-
-        window.onload = function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const dispatchJobId = urlParams.get('dispatchJobId');
-
-            // Handle direct tech routing with url parameters data injection
-            if (dispatchJobId) {
-                const jobData = {
-                    id: dispatchJobId,
-                    boat: urlParams.get('boat') || "Active Job",
-                    location: urlParams.get('loc') || "Assigned Marine Site",
-                    scope: urlParams.get('scope') || "Check with admin for full scope details."
-                };
-                enterTechMobileMode(jobData);
-            } else {
-                renderTechCheckboxes();
-                renderTechConfigTable();
-                renderJobsTable();
-                
-                if(localStorage.getItem('matesRates') === 'true') {
-                    document.getElementById('cfg-mates-rates').checked = true;
-                }
-            }
-        };
-
-        function switchView(viewId) {
-            document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-            
-            document.getElementById(viewId).classList.add('active');
-            if(event && event.target) event.target.classList.add('active');
-        }
-
-        function renderJobsTable() {
-            const tbody = document.getElementById('jobs-list-body');
-            tbody.innerHTML = "";
-            jobs.forEach(job => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td><strong>${job.id}</strong></td>
-                    <td>${job.boat}</td>
-                    <td>${job.location}</td>
-                    <td>${job.techs.join(', ')}</td>
-                    <td>
-                        <button class="btn-primary" style="padding: 5px 10px; font-size:0.85rem;" onclick="generateDispatchAsset('${job.id}')">📲 Dispatch</button>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function renderTechCheckboxes() {
-            const container = document.getElementById('form-tech-checkboxes');
-            container.innerHTML = "";
-            technicians.forEach(tech => {
-                const label = document.createElement('label');
-                label.className = "multi-select-option";
-                label.innerHTML = `<input type="checkbox" name="assignedTechs" value="${tech.name}"> ${tech.name} ($${tech.rate}/hr)`;
-                container.appendChild(label);
-            });
-        }
-
-        function renderTechConfigTable() {
-            const tbody = document.getElementById('tech-config-body');
-            tbody.innerHTML = "";
-            technicians.forEach(tech => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${tech.name}</td><td>$${tech.rate}.00 / hr</td>`;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function createNewJob(e) {
-            e.preventDefault();
-            const checkedTechs = Array.from(document.querySelectorAll('input[name="assignedTechs"]:checked')).map(cb => cb.value);
-            
-            const newJob = {
-                id: "J-" + (1000 + jobs.length + 1),
-                boat: document.getElementById('form-boat').value,
-                location: document.getElementById('form-location').value,
-                clientPhone: document.getElementById('form-client-phone').value,
-                techs: checkedTechs.length > 0 ? checkedTechs : ["Unassigned"],
-                scope: document.getElementById('form-scope').value
-            };
-
-            jobs.push(newJob);
-            renderJobsTable();
-            document.getElementById('job-form').reset();
-            switchView('dashboard-view');
-            generateDispatchAsset(newJob.id);
-        }
-
-        function addTechnicianConfig(e) {
-            e.preventDefault();
-            const name = document.getElementById('cfg-tech-name').value;
-            const rate = parseFloat(document.getElementById('cfg-tech-rate').value);
-            
-            technicians.push({ name, rate });
-            renderTechCheckboxes();
-            renderTechConfigTable();
-            document.getElementById('tech-rate-form').reset();
-        }
-
-        function saveBillingSettings() {
-            localStorage.setItem('matesRates', document.getElementById('cfg-mates-rates').checked);
-        }
-
-        // GENERATES DATA-PACKED DYNAMIC LINK
-        function generateDispatchAsset(jobId) {
-            const job = jobs.find(j => j.id === jobId);
-            if (!job) return;
-
-            const baseUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-            
-            const directDispatchUrl = `${baseUrl}?dispatchJobId=${encodeURIComponent(job.id)}` + 
-                                      `&boat=${encodeURIComponent(job.boat)}` + 
-                                      `&loc=${encodeURIComponent(job.location)}` + 
-                                      `&scope=${encodeURIComponent(job.scope)}`;
-
-            document.getElementById('shareable-link-input').value = directDispatchUrl;
-            document.getElementById('qrcode').innerHTML = "";
-
-            new QRCode(document.getElementById("qrcode"), {
-                text: directDispatchUrl,
-                width: 180,
-                height: 180,
-                correctLevel: QRCode.CorrectLevel.M
-            });
-
-            document.getElementById('qr-modal').style.display = 'flex';
-        }
-
-        function copyGeneratedLink() {
-            const linkInput = document.getElementById('shareable-link-input');
-            linkInput.select();
-            linkInput.setSelectionRange(0, 99999);
-            navigator.clipboard.writeText(linkInput.value);
-            alert("Ea Ninti routing link copied! You can now send this straight via WhatsApp.");
-        }
-
-        function closeQrModal() {
-            document.getElementById('qr-modal').style.display = 'none';
-        }
-
-        // MOBILE PORTAL INITIALIZATION
-        function enterTechMobileMode(jobData) {
-            document.body.classList.add('mobile-mode');
-            
-            document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active'));
-            const techView = document.getElementById('tech-mobile-view');
-            techView.classList.add('active');
-
-            document.getElementById('mobile-boat-title').innerText = jobData.boat;
-            document.getElementById('mobile-job-id').innerText = "Job ID: " + jobData.id;
-            document.getElementById('mobile-location').innerText = jobData.location;
-            document.getElementById('mobile-scope').innerText = jobData.scope;
-
-            const selectEl = document.getElementById('mobile-tech-select');
-            selectEl.innerHTML = '<option value="" disabled selected>Choose your name...</option>';
-            technicians.forEach(t => {
-                const opt = document.createElement('option');
-                opt.value = t.name;
-                opt.innerText = t.name;
-                selectEl.appendChild(opt);
-            });
-        }
-
-        function submitLoggedHours(e) {
-            e.preventDefault();
-            const tech = document.getElementById('mobile-tech-select').value;
-            const hours = document.getElementById('mobile-hours-input').value;
-            const notes = document.getElementById('mobile-work-notes').value;
-
-            alert(`Success! Logged ${hours} hrs for ${tech}.\nData packet submitted safely.`);
-            document.getElementById('hours-logging-form').reset();
-        }
-    </script>
-</body>
-</html>

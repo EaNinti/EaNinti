@@ -658,8 +658,8 @@
                 const job = {
                     id: 'J-' + Math.floor(1000 + Math.random() * 9000),
                     boat: document.getElementById('boat-name').value,
-                    clientName = document.getElementById('client-name').value,
-                    clientContact = document.getElementById('client-contact').value,
+                    clientName: document.getElementById('client-name').value,
+                    clientContact: document.getElementById('client-contact').value,
                     loc: document.getElementById('location').value + (document.getElementById('slip').value ? " (" + document.getElementById('slip').value + ")" : ""),
                     techs: selectedTechs,
                     sys: document.getElementById('system-type').value,

@@ -368,41 +368,18 @@
             color: var(--text-main);
         }
 
-        body.mobile-mode .admin-only {
-            display: none !important;
+        /* Routing Utilities */
+        .admin-view-wrapper {
+            display: block;
         }
         .tech-only {
             display: none;
-        }
-        body.mobile-mode .tech-only {
-            display: block;
-            max-width: 600px;
-            margin: 20px auto;
-            background: #fff;
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-
-        .config-flex-row {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-        .config-card {
-            flex: 1;
-            min-width: 300px;
-            background-color: #fdfdfd;
-            border: 1px solid var(--border);
-            padding: 20px;
-            border-radius: 6px;
-            margin-bottom: 30px;
         }
     </style>
 </head>
 <body>
 
-    <div class="brand-header admin-only">
+    <div class="brand-header" id="adminHeaderWidget">
         <div>
             <h1>EaNintiApp3</h1>
             <div class="subtitle">Spice Isle Marine Electrical Ops Console</div>
@@ -413,7 +390,7 @@
     </div>
 
     <div class="container">
-        <div class="admin-only">
+        <div class="admin-view-wrapper" id="masterAdminSystemWrapper">
             
             <div class="nav-tabs" id="navTabsContainer">
                 <button class="tab-link active" data-target="Dashboard">Job Dashboard</button>
@@ -484,7 +461,7 @@
                         </div>
                         <div class="form-group full-width">
                             <label for="scopeOfWork">Detailed Scope of Work:</label>
-                            <textarea id="scopeOfWork" rows="5" required placeholder="Isolate issues, component lists, engineering descriptions..."></textarea>
+                            <textarea id="scopeOfWork" rows="5" required placeholder="Isolate issues..."></textarea>
                         </div>
                     </div>
                     
@@ -503,7 +480,7 @@
                         <select id="invoiceJobSelect"></select>
                     </div>
                     <div class="form-group full-width">
-                        <label for="invoiceHours">Billable Hours Expended (Applies across crew structure):</label>
+                        <label for="invoiceHours">Billable Hours Expended:</label>
                         <input type="number" step="0.25" id="invoiceHours" value="1.0">
                     </div>
                 </div>
@@ -538,14 +515,11 @@
                             <h3 style="margin: 0; color: var(--primary);">ENGINEERING INVOICE PREVIEW</h3>
                             <span style="font-size: 12px; color: var(--text-muted);">Provisional Calculation Statement</span>
                         </div>
-                        <div style="text-align: right;">
-                            <strong>Vessel Statement</strong>
-                        </div>
                     </div>
-                    <p style="margin: 6px 0;"><strong>Target Vessel Structure:</strong> <span id="invBoat">--</span></p>
-                    <p style="margin: 6px 0;"><strong>Registered Client Owner:</strong> <span id="invOwner">--</span></p>
-                    <p style="margin: 6px 0;"><strong>Job Operational Type:</strong> <span id="invType">--</span></p>
-                    <p style="margin: 6px 0;"><strong>Active Assigned Crew Assets:</strong> <span id="invTechs">--</span></p>
+                    <p style="margin: 6px 0;"><strong>Target Vessel:</strong> <span id="invBoat">--</span></p>
+                    <p style="margin: 6px 0;"><strong>Client Owner:</strong> <span id="invOwner">--</span></p>
+                    <p style="margin: 6px 0;"><strong>Job Type:</strong> <span id="invType">--</span></p>
+                    <p style="margin: 6px 0;"><strong>Assigned Crew:</strong> <span id="invTechs">--</span></p>
                     
                     <div class="table-responsive">
                         <table style="margin-top: 20px; background: #fff;">
@@ -565,7 +539,6 @@
 
             <div id="Settings" class="tab-content">
                 <h2>System Configuration Panel</h2>
-                
                 <div class="config-flex-row">
                     <div class="config-card">
                         <h3 style="margin-top: 0; font-size: 16px; color: var(--primary);">Add New Technician Profile</h3>
@@ -586,7 +559,6 @@
                             </div>
                             <button type="submit" style="width:100%; height: 40px;">Register Technician</button>
                         </form>
-
                         <h3 style="margin-top: 25px; font-size:15px;">Active Registry Directory</h3>
                         <div class="table-responsive">
                             <table id="techTable" style="font-size:13px;">
@@ -604,114 +576,4 @@
                     </div>
 
                     <div class="config-card">
-                        <h3 style="margin-top: 0; font-size: 16px; color: var(--primary);">Manage Operational Job Types</h3>
-                        <form id="jobTypeForm" style="display: flex; gap: 10px; align-items: flex-end; margin-bottom: 15px;">
-                            <div style="flex: 1;">
-                                <label style="font-size: 12px;">New Job Classification Label</label>
-                                <input type="text" id="newJobTypeInput" required placeholder="e.g. Inverter Overhaul">
-                            </div>
-                            <button type="submit" style="height: 40px;">Add Type</button>
-                        </form>
-
-                        <h3 style="font-size:15px;">Configured Classification Classes</h3>
-                        <div class="table-responsive">
-                            <table id="jobTypeTable" style="font-size:13px;">
-                                <thead>
-                                    <tr>
-                                        <th>Classification Category Name</th>
-                                        <th style="width: 80px;">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="jobTypeTableBody"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="HoursLogging" class="tech-only">
-            <h1 style="text-align: center; border-bottom: 2px solid var(--primary); padding-bottom: 10px; color: var(--primary);">Ea Ninti - Technician Portal</h1>
-            
-            <div style="background: #fdfdfd; border: 1px solid var(--border); padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <h2 id="viewBoatName" style="margin-top: 0; color: var(--primary-light); border: none; padding: 0;">Boat Name</h2>
-                <p><strong>Job Ref ID:</strong> <span id="viewJobId">--</span></p>
-                <p><strong>Owner:</strong> <span id="viewBoatOwner">--</span></p>
-                <p><strong>Job Type:</strong> <span id="viewJobType">--</span></p>
-                <p><strong>Contact Line:</strong> <span id="viewClientPhone">--</span></p>
-                <p><strong>Appointment Schedule:</strong> <span id="viewAppointment">--</span></p>
-                <p><strong>Vessel Location:</strong> <span id="viewBoatLocation">--</span></p>
-                <p><strong>Marina Facility:</strong> <span id="viewMarinaLocation">--</span></p>
-                <p style="margin-bottom: 4px;"><strong>Target Assignment Scope:</strong></p>
-                <p id="viewScopeOfWork" style="background: #f8f9fa; padding: 12px; border: 1px solid var(--border); border-radius: 6px; white-space: pre-wrap; font-size: 14px;">--</p>
-            </div>
-
-            <h3 style="color: var(--primary);">Log Task & Operations Time</h3>
-            <form id="hoursForm">
-                <div class="form-group">
-                    <label for="workerSelect">Select Your Profile Name:</label>
-                    <select id="workerSelect" required></select>
-                </div>
-                <div class="form-group">
-                    <label for="hoursWorked">Operational Hours Expended:</label>
-                    <input type="number" step="0.25" id="hoursWorked" required placeholder="e.g. 4.25">
-                </div>
-                <div class="form-group">
-                    <label for="workDone">Engineering Narrative / Work Executed:</label>
-                    <textarea id="workDone" rows="4" required placeholder="Describe repairs executed, parts replaced, charging tests results..."></textarea>
-                </div>
-                <button type="submit" style="width: 100%; background-color: #28a745; padding: 12px; font-size: 16px;">Transmit Operational Log</button>
-            </form>
-        </div>
-    </div>
-
-    <div id="qrModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" id="closeModalX">&times;</span>
-            <h3 style="margin-top: 0; color: var(--primary);">Operational WhatsApp Dispatch Link</h3>
-            <div id="qrcode" style="display: flex; justify-content: center; margin: 20px 0; background: white; padding: 10px;"></div>
-            <p style="font-size: 13px; color: var(--text-muted);">Copy the localized routing parameter dataset below to dispatch via WhatsApp directly to technicians:</p>
-            <div style="display: flex; gap: 8px; margin-top: 15px;">
-                <input type="text" id="shareLinkInput" readonly style="flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px;">
-                <button id="copyLinkBtn">Copy URL</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Data Structures Storage Baseline
-        let jobs = [
-            { id: "EAN-2001", boatName: "Garuda", boatOwner: "Captain Peterson", type: "Electrical Repair", appointment: "2026-06-05T09:00", boatLocation: "Slip B-24", marinaLocation: "Clarkes Court Bay", clientPhone: "473-444-1111", techs: [{name: "William", rateProfile: "standard"}, {name: "Garuda", rateProfile: "mates"}], scopeOfWork: "Troubleshoot house bank alternator charging failure. Isolate secondary regulator matrix." },
-            { id: "EAN-2002", boatName: "Skyler", boatOwner: "Alistair Vance", type: "Electronics Install", appointment: "2026-06-06T13:30", boatLocation: "Main Dock Anchorage", marinaLocation: "Prickly Bay", clientPhone: "473-444-2222", techs: [{name: "William", rateProfile: "standard"}], scopeOfWork: "Calibrate newly fitted wind transducer instrument and backbone network links." }
-        ];
-
-        let technicians = [
-            { name: "Garuda", rate: 65, matesRate: 50 },
-            { name: "William", rate: 60, matesRate: 45 },
-            { name: "Skyler", rate: 55, matesRate: 40 }
-        ];
-
-        let jobTypes = [
-            "Electrical Repair",
-            "Electronics Install",
-            "Maintenance / Service",
-            "Battery Diagnostics",
-            "Solar / Charging Systems"
-        ];
-
-        let currentInvoiceParts = [];
-
-        // Safe DOM Initializer avoids thread freezes
-        document.addEventListener("DOMContentLoaded", function() {
-            try {
-                let tabButtons = document.querySelectorAll('#navTabsContainer .tab-link');
-                tabButtons.forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        openTab(this.getAttribute('data-target'), this);
-                    });
-                });
-
-                let jobForm = document.getElementById('jobForm');
-                if (jobForm) jobForm.addEventListener('submit', saveJobCard);
-
-                let techForm = document.
+                        <h3 style="margin-top: 0; font

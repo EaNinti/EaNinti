@@ -30,7 +30,6 @@
             line-height: 1.5;
         }
 
-        /* Top Brand Header */
         .brand-header {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
             color: white;
@@ -60,7 +59,6 @@
             padding: 0 20px;
         }
 
-        /* Clean Modern Navigation Tabs */
         .nav-tabs {
             display: flex;
             gap: 10px;
@@ -93,7 +91,6 @@
             background-color: #fff;
         }
 
-        /* Panels & Cards */
         .tab-content {
             display: none;
             background: var(--bg-card);
@@ -116,7 +113,6 @@
             padding-bottom: 10px;
         }
 
-        /* Form Styling Grid */
         .form-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -161,9 +157,8 @@
             background-color: #fff;
         }
 
-        /* Custom Checkbox Container */
         .multi-select-box {
-            max-height: 150px;
+            max-height: 200px;
             overflow-y: auto;
             border: 1px solid var(--border);
             padding: 12px;
@@ -174,10 +169,22 @@
         .multi-select-option {
             display: flex;
             align-items: center;
-            margin-bottom: 8px;
-            font-weight: normal;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 1px dashed var(--border);
             font-size: 14px;
-            cursor: pointer;
+        }
+
+        .multi-select-option:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .tech-left-group {
+            display: flex;
+            align-items: center;
         }
 
         .multi-select-option input[type="checkbox"] {
@@ -187,7 +194,13 @@
             accent-color: var(--primary);
         }
 
-        /* Buttons Structure */
+        .rate-toggle-select {
+            width: auto !important;
+            padding: 4px 8px !important;
+            font-size: 12px !important;
+            height: auto !important;
+        }
+
         .btn-group {
             display: flex;
             gap: 10px;
@@ -246,7 +259,6 @@
             color: var(--text-main);
         }
 
-        /* Data Tables Styling */
         .table-responsive {
             width: 100%;
             overflow-x: auto;
@@ -289,7 +301,6 @@
             border-radius: 4px;
         }
 
-        /* Badge Pills */
         .badge {
             display: inline-block;
             padding: 3px 8px;
@@ -305,7 +316,6 @@
             color: var(--primary);
         }
 
-        /* Invoice UI Card */
         .invoice-card {
             border: 1px solid var(--border);
             padding: 25px;
@@ -323,7 +333,6 @@
             margin-bottom: 15px;
         }
 
-        /* Modal Panels */
         .modal {
             display: none;
             position: fixed;
@@ -359,7 +368,6 @@
             color: var(--text-main);
         }
 
-        /* Mobile Adjustments */
         body.mobile-mode .admin-only {
             display: none !important;
         }
@@ -374,6 +382,21 @@
             padding: 25px;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .config-flex-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .config-card {
+            flex: 1;
+            min-width: 300px;
+            background-color: #fdfdfd;
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 30px;
         }
     </style>
 </head>
@@ -396,9 +419,10 @@
                 <button class="tab-link active" data-target="Dashboard">Job Dashboard</button>
                 <button class="tab-link" data-target="CreateJob">Create / Edit Job Card</button>
                 <button class="tab-link" data-target="Invoicing">Invoicing</button>
-                <button class="tab-link" data-target="Settings">Settings & Crew</button>
+                <button class="tab-link" data-target="Settings">Settings & Fleet</button>
             </div>
 
+            <!-- TAB: MASTER JOB DASHBOARD -->
             <div id="Dashboard" class="tab-content active">
                 <h2>Active Operational Records</h2>
                 <div class="table-responsive">
@@ -412,16 +436,16 @@
                                 <th>Appointment Schedule</th>
                                 <th>Location</th>
                                 <th>Marina</th>
-                                <th>Assigned Technicians</th>
+                                <th>Assigned Crew & Profile</th>
                                 <th style="min-width: 210px;">Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="jobsTableBody">
-                            </tbody>
+                        <tbody id="jobsTableBody"></tbody>
                     </table>
                 </div>
             </div>
 
+            <!-- TAB: CREATION & EDIT ENGINE -->
             <div id="CreateJob" class="tab-content">
                 <h2 id="formTabHeader">Create Job Card</h2>
                 <form id="jobForm">
@@ -442,13 +466,7 @@
                         </div>
                         <div class="form-group">
                             <label for="jobType">Type of Job:</label>
-                            <select id="jobType" required>
-                                <option value="Electrical Repair">Electrical Repair</option>
-                                <option value="Electronics Install">Electronics Install</option>
-                                <option value="Maintenance / Service">Maintenance / Service</option>
-                                <option value="Battery Diagnostics">Battery Diagnostics</option>
-                                <option value="Solar / Charging Systems">Solar / Charging Systems</option>
-                            </select>
+                            <select id="jobType" required></select>
                         </div>
                         <div class="form-group">
                             <label for="appointmentDateTime">Appointment Date & Time:</label>
@@ -463,9 +481,8 @@
                             <input type="text" id="marinaLocation" required placeholder="e.g. Clarkes Court Bay">
                         </div>
                         <div class="form-group full-width">
-                            <label>Assign Operations Crew (Select multiple if required):</label>
-                            <div class="multi-select-box" id="techAssignmentContainer">
-                                </div>
+                            <label>Assign Operations Crew & Specific Rate Structure:</label>
+                            <div class="multi-select-box" id="techAssignmentContainer"></div>
                         </div>
                         <div class="form-group full-width">
                             <label for="scopeOfWork">Detailed Scope of Work:</label>
@@ -480,23 +497,16 @@
                 </form>
             </div>
 
+            <!-- TAB: INTEGRATED INVOICING CALCULATOR -->
             <div id="Invoicing" class="tab-content">
                 <h2>Generate Operational Invoice Summary</h2>
                 <div class="form-grid">
-                    <div class="form-group">
+                    <div class="form-group full-width">
                         <label for="invoiceJobSelect">Target Reference Job Card:</label>
-                        <select id="invoiceJobSelect">
-                            </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="invoiceRateType">Billing Rate Profile Matrix:</label>
-                        <select id="invoiceRateType">
-                            <option value="standard">Standard Fleet Rate</option>
-                            <option value="mates">Mates Rates Config</option>
-                        </select>
+                        <select id="invoiceJobSelect"></select>
                     </div>
                     <div class="form-group full-width">
-                        <label for="invoiceHours">Billable Hours Field Matrix:</label>
+                        <label for="invoiceHours">Billable Hours Expended (Applies across crew structure):</label>
                         <input type="number" step="0.25" id="invoiceHours" value="1.0">
                     </div>
                 </div>
@@ -520,8 +530,7 @@
                                     <th style="width: 60px;">Action</th>
                                 </tr>
                             </thead>
-                            <tbody id="partsTableBody">
-                                </tbody>
+                            <tbody id="partsTableBody"></tbody>
                         </table>
                     </div>
                 </div>
@@ -551,53 +560,83 @@
                                     <th>Subtotal Line Due</th>
                                 </tr>
                             </thead>
-                            <tbody id="invoiceTableBody">
-                                </tbody>
+                            <tbody id="invoiceTableBody"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
+            <!-- TAB: SETTINGS & CONFIGURATION -->
             <div id="Settings" class="tab-content">
                 <h2>System Configuration Panel</h2>
                 
-                <div style="background-color: #fdfdfd; border: 1px solid var(--border); padding: 20px; border-radius: 6px; margin-bottom: 30px;">
-                    <h3 style="margin-top: 0; font-size: 16px; color: var(--primary);">Add New Technician Account Profile</h3>
-                    <form id="techForm" style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
-                        <div style="flex: 2; min-width: 200px;">
-                            <label style="font-size: 12px;">Technician Full Name</label>
-                            <input type="text" id="techName" required placeholder="Name">
-                        </div>
-                        <div style="flex: 1; min-width: 110px;">
-                            <label style="font-size: 12px;">Standard Rate (US$)</label>
-                            <input type="number" id="techRate" required placeholder="e.g. 65">
-                        </div>
-                        <div style="flex: 1; min-width: 110px;">
-                            <label style="font-size: 12px;">Mates Rate (US$)</label>
-                            <input type="number" id="techMatesRate" required placeholder="e.g. 45">
-                        </div>
-                        <button type="submit" style="height: 40px;">Register Technician</button>
-                    </form>
-                </div>
+                <div class="config-flex-row">
+                    <!-- Column Left: Tech Configuration -->
+                    <div class="config-card">
+                        <h3 style="margin-top: 0; font-size: 16px; color: var(--primary);">Add New Technician Profile</h3>
+                        <form id="techForm">
+                            <div style="margin-bottom: 12px;">
+                                <label style="font-size: 12px;">Technician Full Name</label>
+                                <input type="text" id="techName" required placeholder="Name">
+                            </div>
+                            <div style="display:flex; gap:10px; margin-bottom:12px;">
+                                <div style="flex:1;">
+                                    <label style="font-size: 12px;">Standard Rate (US$)</label>
+                                    <input type="number" id="techRate" required placeholder="65">
+                                </div>
+                                <div style="flex:1;">
+                                    <label style="font-size: 12px;">Mates Rate (US$)</label>
+                                    <input type="number" id="techMatesRate" required placeholder="45">
+                                </div>
+                            </div>
+                            <button type="submit" style="width:100%; height: 40px;">Register Technician</button>
+                        </form>
 
-                <h3>Active Technicians Directory Registry</h3>
-                <div class="table-responsive">
-                    <table id="techTable">
-                        <thead>
-                            <tr>
-                                <th>Technician Identifier Reference</th>
-                                <th>Standard Profile Rate</th>
-                                <th>Mates Base Rate</th>
-                                <th style="width: 100px;">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="techTableBody">
-                            </tbody>
-                    </table>
+                        <h3 style="margin-top: 25px; font-size:15px;">Active Registry Directory</h3>
+                        <div class="table-responsive">
+                            <table id="techTable" style="font-size:13px;">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Std Rate</th>
+                                        <th>Mates Rate</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="techTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Column Right: Job Type Setup Configuration -->
+                    <div class="config-card">
+                        <h3 style="margin-top: 0; font-size: 16px; color: var(--primary);">Manage Operational Job Types</h3>
+                        <form id="jobTypeForm" style="display: flex; gap: 10px; align-items: flex-end; margin-bottom: 15px;">
+                            <div style="flex: 1;">
+                                <label style="font-size: 12px;">New Job Classification Label</label>
+                                <input type="text" id="newJobTypeInput" required placeholder="e.g. Inverter Overhaul">
+                            </div>
+                            <button type="submit" style="height: 40px;">Add Type</button>
+                        </form>
+
+                        <h3 style="font-size:15px;">Configured Classification Classes</h3>
+                        <div class="table-responsive">
+                            <table id="jobTypeTable" style="font-size:13px;">
+                                <thead>
+                                    <tr>
+                                        <th>Classification Category Name</th>
+                                        <th style="width: 80px;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="jobTypeTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
+        <!-- TECHNICIAN MOBILE DISPATCH HUB -->
         <div id="HoursLogging" class="tech-only">
             <h1 style="text-align: center; border-bottom: 2px solid var(--primary); padding-bottom: 10px; color: var(--primary);">Ea Ninti - Technician Portal</h1>
             
@@ -606,3 +645,596 @@
                 <p><strong>Job Ref ID:</strong> <span id="viewJobId">--</span></p>
                 <p><strong>Owner:</strong> <span id="viewBoatOwner">--</span></p>
                 <p><strong>Job Type:</strong> <span id="viewJobType">--</span></p>
+                <p><strong>Contact Line:</strong> <span id="viewClientPhone">--</span></p>
+                <p><strong>Appointment Schedule:</strong> <span id="viewAppointment">--</span></p>
+                <p><strong>Vessel Location:</strong> <span id="viewBoatLocation">--</span></p>
+                <p><strong>Marina Facility:</strong> <span id="viewMarinaLocation">--</span></p>
+                <p style="margin-bottom: 4px;"><strong>Target Assignment Scope:</strong></p>
+                <p id="viewScopeOfWork" style="background: #f8f9fa; padding: 12px; border: 1px solid var(--border); border-radius: 6px; white-space: pre-wrap; font-size: 14px;">--</p>
+            </div>
+
+            <h3 style="color: var(--primary);">Log Task & Operations Time</h3>
+            <form id="hoursForm">
+                <div class="form-group">
+                    <label for="workerSelect">Select Your Profile Name:</label>
+                    <select id="workerSelect" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="hoursWorked">Operational Hours Expended:</label>
+                    <input type="number" step="0.25" id="hoursWorked" required placeholder="e.g. 4.25">
+                </div>
+                <div class="form-group">
+                    <label for="workDone">Engineering Narrative / Work Executed:</label>
+                    <textarea id="workDone" rows="4" required placeholder="Describe repairs executed, parts replaced, charging tests results..."></textarea>
+                </div>
+                <button type="submit" style="width: 100%; background-color: #28a745; padding: 12px; font-size: 16px;">Transmit Operational Log</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- CONNECTION/DISPATCH ASSET MODAL PANEL -->
+    <div id="qrModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeModalX">&times;</span>
+            <h3 style="margin-top: 0; color: var(--primary);">Operational WhatsApp Dispatch Link</h3>
+            <div id="qrcode" style="display: flex; justify-content: center; margin: 20px 0; background: white; padding: 10px;"></div>
+            <p style="font-size: 13px; color: var(--text-muted);">Copy the localized routing parameter dataset below to dispatch via WhatsApp directly to technicians:</p>
+            <div style="display: flex; gap: 8px; margin-top: 15px;">
+                <input type="text" id="shareLinkInput" readonly style="flex: 1; padding: 8px; border: 1px solid var(--border); border-radius: 4px;">
+                <button id="copyLinkBtn">Copy URL</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data Structures Storage Baseline
+        let jobs = [
+            { id: "EAN-2001", boatName: "Garuda", boatOwner: "Captain Peterson", type: "Electrical Repair", appointment: "2026-06-05T09:00", boatLocation: "Slip B-24", marinaLocation: "Clarkes Court Bay", clientPhone: "473-444-1111", techs: [{name: "William", rateProfile: "standard"}, {name: "Garuda", rateProfile: "mates"}], scopeOfWork: "Troubleshoot house bank alternator charging failure. Isolate secondary regulator matrix." },
+            { id: "EAN-2002", boatName: "Skyler", boatOwner: "Alistair Vance", type: "Electronics Install", appointment: "2026-06-06T13:30", boatLocation: "Main Dock Anchorage", marinaLocation: "Prickly Bay", clientPhone: "473-444-2222", techs: [{name: "William", rateProfile: "standard"}], scopeOfWork: "Calibrate newly fitted wind transducer instrument and backbone network links." }
+        ];
+
+        let technicians = [
+            { name: "Garuda", rate: 65, matesRate: 50 },
+            { name: "William", rate: 60, matesRate: 45 },
+            { name: "Skyler", rate: 55, matesRate: 40 }
+        ];
+
+        let jobTypes = [
+            "Electrical Repair",
+            "Electronics Install",
+            "Maintenance / Service",
+            "Battery Diagnostics",
+            "Solar / Charging Systems"
+        ];
+
+        let currentInvoiceParts = [];
+
+        window.onload = function() {
+            try {
+                let tabButtons = document.querySelectorAll('#navTabsContainer .tab-link');
+                tabButtons.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        openTab(this.getAttribute('data-target'), this);
+                    });
+                });
+
+                document.getElementById('jobForm').addEventListener('submit', saveJobCard);
+                document.getElementById('techForm').addEventListener('submit', addTechnician);
+                document.getElementById('jobTypeForm').addEventListener('submit', addJobType);
+                document.getElementById('hoursForm').addEventListener('submit', submitHours);
+
+                document.getElementById('cancelEditBtn').addEventListener('click', resetJobForm);
+                document.getElementById('addPartBtn').addEventListener('click', addInvoicePart);
+
+                document.getElementById('invoiceJobSelect').addEventListener('change', calculateInvoice);
+                document.getElementById('invoiceHours').addEventListener('input', calculateInvoice);
+
+                document.getElementById('closeModalX').addEventListener('click', closeModal);
+                document.getElementById('copyLinkBtn').addEventListener('click', copyLink);
+
+                let urlParams = new URLSearchParams(window.location.search);
+                let dispatchJobId = urlParams.get('dispatchJobId');
+
+                if (dispatchJobId) {
+                    initTechMobileView({
+                        id: dispatchJobId,
+                        boatName: urlParams.get('boat') || "Active Job",
+                        boatOwner: urlParams.get('owner') || "Unspecified",
+                        clientPhone: urlParams.get('phone') || "Unspecified",
+                        type: urlParams.get('type') || "Electrical Repair",
+                        appointment: urlParams.get('appt') || "",
+                        boatLocation: urlParams.get('bLoc') || "Marine Sector",
+                        marinaLocation: urlParams.get('mLoc') || "Specified Location",
+                        scopeOfWork: urlParams.get('scope') || "Review documentation."
+                    });
+                } else {
+                    refreshAdminUI();
+                }
+            } catch (err) {
+                console.error("Initialization sequence bypassed safety flags: ", err);
+                refreshAdminUI();
+            }
+        };
+
+        function refreshAdminUI() {
+            renderJobTypeDropdowns();
+            renderJobTypesTable();
+            renderTechOptions();
+            renderTechTable();
+            renderJobsTable();
+            populateInvoiceJobSelect();
+            calculateInvoice();
+        }
+
+        function formatDateTime(dateTimeStr) {
+            if (!dateTimeStr) return 'N/A';
+            let dt = new Date(dateTimeStr);
+            if (isNaN(dt.getTime())) return dateTimeStr;
+            return dt.toLocaleDateString() + ' @ ' + dt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+
+        function openTab(tabName, clickedButton) {
+            let tabcontent = document.getElementsByClassName("tab-content");
+            for (let i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].classList.remove("active");
+            }
+            let tablinks = document.getElementsByClassName("tab-link");
+            for (let i = 0; i < tablinks.length; i++) {
+                tablinks[i].classList.remove("active");
+            }
+            let targetContent = document.getElementById(tabName);
+            if(targetContent) targetContent.classList.add("active");
+            if (clickedButton) clickedButton.classList.add("active");
+        }
+
+        function renderJobTypeDropdowns() {
+            let select = document.getElementById('jobType');
+            if (!select) return;
+            select.innerHTML = '';
+            jobTypes.forEach(type => {
+                let opt = document.createElement('option');
+                opt.value = type;
+                opt.innerText = type;
+                select.appendChild(opt);
+            });
+        }
+
+        function renderJobTypesTable() {
+            let tbody = document.getElementById('jobTypeTableBody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            jobTypes.forEach((type, index) => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${type}</strong></td>
+                    <td><button class="btn-danger remove-type-btn" data-idx="${index}" style="padding:4px 8px; font-size:12px;">Delete</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            tbody.querySelectorAll('.remove-type-btn').forEach(b => {
+                b.addEventListener('click', function() { deleteJobType(parseInt(this.getAttribute('data-idx'))); });
+            });
+        }
+
+        function addJobType(e) {
+            e.preventDefault();
+            let input = document.getElementById('newJobTypeInput');
+            let val = input.value.trim();
+            if(val && !jobTypes.includes(val)) {
+                jobTypes.push(val);
+                input.value = '';
+                refreshAdminUI();
+            }
+        }
+
+        function deleteJobType(idx) {
+            if(confirm(`Are you sure you want to remove the job category "${jobTypes[idx]}"?`)) {
+                jobTypes.splice(idx, 1);
+                refreshAdminUI();
+            }
+        }
+
+        function renderTechOptions() {
+            let container = document.getElementById('techAssignmentContainer');
+            if (!container) return;
+            container.innerHTML = '';
+            technicians.forEach((tech, index) => {
+                let div = document.createElement('div');
+                div.className = 'multi-select-option';
+                div.innerHTML = `
+                    <div class="tech-left-group">
+                        <input type="checkbox" name="assignedTechs" value="${tech.name}" id="chk_tech_${index}">
+                        <label for="chk_tech_${index}" style="display:inline; margin:0; cursor:pointer;">
+                            <strong>${tech.name}</strong> 
+                            <span style="color:var(--text-muted); font-size:12px; margin-left:5px;">
+                                (Std: US$${tech.rate} / Mates: US$${tech.matesRate})
+                            </span>
+                        </label>
+                    </div>
+                    <div>
+                        <select class="rate-toggle-select" id="rate_profile_${tech.name}">
+                            <option value="standard">Standard Rate</option>
+                            <option value="mates">Mates Rates</option>
+                        </select>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function renderTechTable() {
+            let tbody = document.getElementById('techTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            technicians.forEach((tech, index) => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${tech.name}</strong></td>
+                    <td>US$${tech.rate}.00</td>
+                    <td>US$${tech.matesRate}.00</td>
+                    <td><button class="btn-danger remove-tech-btn" data-idx="${index}" style="padding: 4px 8px; font-size:12px;">Remove</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            tbody.querySelectorAll('.remove-tech-btn').forEach(b => {
+                b.addEventListener('click', function() { deleteTechnician(parseInt(this.getAttribute('data-idx'))); });
+            });
+        }
+
+        function renderJobsTable() {
+            let tbody = document.getElementById('jobsTableBody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            jobs.forEach(job => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${job.id}</strong></td>
+                    <td style="color:var(--primary); font-weight:600;">${job.boatName}</td>
+                    <td>${job.boatOwner || 'N/A'}</td>
+                    <td><span class="badge">${job.type || 'Electrical Repair'}</span></td>
+                    <td><span class="badge" style="background:#e0f2fe; color:#0369a1;">${formatDateTime(job.appointment)}</span></td>
+                    <td>${job.boatLocation}</td>
+                    <td>${job.marinaLocation}</td>
+                    <td>${job.techs.map(t => `<span class="badge badge-primary" style="margin:2px;">${t.name} (${t.rateProfile === 'mates' ? 'Mates' : 'Std'})</span>`).join('')}</td>
+                    <td>
+                        <div class="action-cell">
+                            <button class="dispatch-btn" data-id="${job.id}">📲 Dispatch</button>
+                            <button class="btn-warning edit-btn" data-id="${job.id}">✏️ Edit</button>
+                            <button class="btn-danger delete-btn" data-id="${job.id}">🗑️ Delete</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            tbody.querySelectorAll('.dispatch-btn').forEach(b => {
+                b.addEventListener('click', function() { dispatchJob(this.getAttribute('data-id')); });
+            });
+            tbody.querySelectorAll('.edit-btn').forEach(b => {
+                b.addEventListener('click', function() { editJobCard(this.getAttribute('data-id')); });
+            });
+            tbody.querySelectorAll('.delete-btn').forEach(b => {
+                b.addEventListener('click', function() { deleteJobCard(this.getAttribute('data-id')); });
+            });
+        }
+
+        function populateInvoiceJobSelect() {
+            let select = document.getElementById('invoiceJobSelect');
+            if (!select) return;
+            select.innerHTML = '';
+            jobs.forEach(job => {
+                let opt = document.createElement('option');
+                opt.value = job.id;
+                opt.innerText = `${job.id} - ${job.boatName} (${job.boatOwner})`;
+                select.appendChild(opt);
+            });
+        }
+
+        function addInvoicePart() {
+            let desc = document.getElementById('partDescription').value.trim();
+            let cost = parseFloat(document.getElementById('partCost').value) || 0;
+            let qty = parseInt(document.getElementById('partQty').value) || 1;
+
+            if(!desc) {
+                alert("Please add description properties for the hardware line item.");
+                return;
+            }
+
+            currentInvoiceParts.push({ desc, cost, qty });
+            document.getElementById('partDescription').value = "";
+            document.getElementById('partCost').value = "";
+            document.getElementById('partQty').value = "1";
+
+            renderPartsTable();
+            calculateInvoice();
+        }
+
+        function removeInvoicePart(index) {
+            currentInvoiceParts.splice(index, 1);
+            renderPartsTable();
+            calculateInvoice();
+        }
+
+        function renderPartsTable() {
+            let tbody = document.getElementById('partsTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            currentInvoiceParts.forEach((part, idx) => {
+                let rowTotal = part.cost * part.qty;
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${part.desc}</td>
+                    <td>US$${part.cost.toFixed(2)}</td>
+                    <td>${part.qty}</td>
+                    <td><strong>US$${rowTotal.toFixed(2)}</strong></td>
+                    <td><button type="button" class="btn-danger remove-part-x" data-idx="${idx}" style="padding:2px 6px;">&times;</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            tbody.querySelectorAll('.remove-part-x').forEach(b => {
+                b.addEventListener('click', function() { removeInvoicePart(parseInt(this.getAttribute('data-idx'))); });
+            });
+        }
+
+        function editJobCard(jobId) {
+            let job = jobs.find(j => j.id === jobId);
+            if (!job) return;
+
+            document.getElementById('editJobId').value = job.id;
+            document.getElementById('boatName').value = job.boatName;
+            document.getElementById('boatOwner').value = job.boatOwner;
+            document.getElementById('clientPhone').value = job.clientPhone;
+            document.getElementById('jobType').value = job.type;
+            document.getElementById('appointmentDateTime').value = job.appointment || "";
+            document.getElementById('boatLocation').value = job.boatLocation;
+            document.getElementById('marinaLocation').value = job.marinaLocation;
+            document.getElementById('scopeOfWork').value = job.scopeOfWork;
+
+            // Reset options first
+            document.querySelectorAll('input[name="assignedTechs"]').forEach(cb => {
+                cb.checked = false;
+            });
+
+            // Re-apply values & specific toggled profiles
+            job.techs.forEach(tDef => {
+                let cb = document.querySelector(`input[name="assignedTechs"][value="${tDef.name}"]`);
+                if(cb) cb.checked = true;
+                let sel = document.getElementById(`rate_profile_${tDef.name}`);
+                if(sel) sel.value = tDef.rateProfile || "standard";
+            });
+
+            document.getElementById('formTabHeader').innerText = "Modify Active Record: " + job.id;
+            document.getElementById('submitJobBtn').innerText = "Commit Adjustments";
+            document.getElementById('cancelEditBtn').style.display = "inline-block";
+
+            openTab('CreateJob', document.querySelector('[data-target="CreateJob"]'));
+        }
+
+        function deleteJobCard(jobId) {
+            if (confirm(`Operational Alert:\nPermanently remove job card ${jobId}?`)) {
+                jobs = jobs.filter(j => j.id !== jobId);
+                refreshAdminUI();
+            }
+        }
+
+        function resetJobForm() {
+            document.getElementById('jobForm').reset();
+            document.getElementById('editJobId').value = "";
+            document.getElementById('formTabHeader').innerText = "Create Job Card";
+            document.getElementById('submitJobBtn').innerText = "Generate Operational Job Card";
+            document.getElementById('cancelEditBtn').style.display = "none";
+        }
+
+        function saveJobCard(e) {
+            e.preventDefault();
+            let editId = document.getElementById('editJobId').value;
+            
+            let chosenCheckboxes = document.querySelectorAll('input[name="assignedTechs"]:checked');
+            let assignedTechsPayload = [];
+            
+            chosenCheckboxes.forEach(cb => {
+                let name = cb.value;
+                let profileSelect = document.getElementById(`rate_profile_${name}`);
+                assignedTechsPayload.push({
+                    name: name,
+                    rateProfile: profileSelect ? profileSelect.value : "standard"
+                });
+            });
+
+            let jobPayload = {
+                boatName: document.getElementById('boatName').value,
+                boatOwner: document.getElementById('boatOwner').value,
+                clientPhone: document.getElementById('clientPhone').value,
+                type: document.getElementById('jobType').value,
+                appointment: document.getElementById('appointmentDateTime').value,
+                boatLocation: document.getElementById('boatLocation').value,
+                marinaLocation: document.getElementById('marinaLocation').value,
+                techs: assignedTechsPayload.length > 0 ? assignedTechsPayload : [{name: "Unassigned Asset", rateProfile: "standard"}],
+                scopeOfWork: document.getElementById('scopeOfWork').value
+            };
+
+            if (editId) {
+                let index = jobs.findIndex(j => j.id === editId);
+                if (index !== -1) jobs[index] = { id: editId, ...jobPayload };
+                resetJobForm();
+            } else {
+                let newJob = { id: "EAN-" + (2000 + jobs.length + 1), ...jobPayload };
+                jobs.push(newJob);
+                resetJobForm();
+                dispatchJob(newJob.id);
+            }
+
+            refreshAdminUI();
+            openTab('Dashboard', document.querySelector('[data-target="Dashboard"]'));
+        }
+
+        function addTechnician(e) {
+            e.preventDefault();
+            let name = document.getElementById('techName').value;
+            let rate = parseFloat(document.getElementById('techRate').value);
+            let matesRate = parseFloat(document.getElementById('techMatesRate').value);
+
+            technicians.push({ name, rate, matesRate });
+            document.getElementById('techForm').reset();
+            refreshAdminUI();
+        }
+
+        function deleteTechnician(index) {
+            if(confirm(`Remove technician profile for ${technicians[index].name}?`)) {
+                technicians.splice(index, 1);
+                refreshAdminUI();
+            }
+        }
+
+        function calculateInvoice() {
+            let selectElement = document.getElementById('invoiceJobSelect');
+            if(!selectElement) return;
+            
+            let jobId = selectElement.value;
+            if(!jobId) return;
+            
+            let totalHours = parseFloat(document.getElementById('invoiceHours').value) || 0;
+            let job = jobs.find(j => j.id === jobId);
+            if (!job) return;
+
+            document.getElementById('invBoat').innerText = job.boatName;
+            document.getElementById('invOwner').innerText = job.boatOwner;
+            document.getElementById('invType').innerText = job.type;
+            document.getElementById('invTechs').innerText = job.techs.map(t => `${t.name} (${t.rateProfile === 'mates' ? 'Mates' : 'Std'})`).join(', ');
+
+            let tbody = document.getElementById('invoiceTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            let finalInvoiceTotal = 0;
+
+            // Labor Step: Reads exact individual profile assigned on the specific Job Card
+            job.techs.forEach(tDef => {
+                let techObj = technicians.find(t => t.name === tDef.name);
+                let activeRate = 60; // baseline safe fallback
+
+                if(techObj) {
+                    activeRate = (tDef.rateProfile === 'mates') ? techObj.matesRate : techObj.rate;
+                }
+                
+                let lineTotal = totalHours * activeRate;
+                finalInvoiceTotal += lineTotal;
+
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>Marine Labor Services — <strong>${tDef.name}</strong> (${tDef.rateProfile === 'mates' ? 'Mates' : 'Standard'})</td>
+                    <td>${totalHours} hrs</td>
+                    <td>US$${activeRate}.00 / hr</td>
+                    <td style="text-align:right;"><strong>US$${lineTotal.toFixed(2)}</strong></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Materials Config mapping
+            currentInvoiceParts.forEach(part => {
+                let lineTotal = part.cost * part.qty;
+                finalInvoiceTotal += lineTotal;
+
+                let tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>Component Hardware: <strong>${part.desc}</strong></td>
+                    <td>${part.qty} Qty</td>
+                    <td>US$${part.cost.toFixed(2)} each</td>
+                    <td style="text-align:right;"><strong>US$${lineTotal.toFixed(2)}</strong></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            let totalTr = document.createElement('tr');
+            totalTr.innerHTML = `
+                <td colspan="3" style="text-align: right; font-weight: bold; padding: 18px 16px;">Calculated Invoice Total Due:</td>
+                <td style="background: rgba(40, 167, 69, 0.08); font-size: 18px; color: #28a745; text-align:right; font-weight:bold; padding: 18px 16px;">US$${finalInvoiceTotal.toFixed(2)}</td>
+            `;
+            tbody.appendChild(totalTr);
+        }
+
+        function dispatchJob(jobId) {
+            let job = jobs.find(j => j.id === jobId);
+            if (!job) return;
+
+            let baseUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+            let targetDispatchUrl = `${baseUrl}?dispatchJobId=${encodeURIComponent(job.id)}` +
+                                      `&boat=${encodeURIComponent(job.boatName)}` +
+                                      `&owner=${encodeURIComponent(job.boatOwner || '')}` +
+                                      `&phone=${encodeURIComponent(job.clientPhone || '')}` +
+                                      `&type=${encodeURIComponent(job.type)}` +
+                                      `&appt=${encodeURIComponent(job.appointment || '')}` +
+                                      `&bLoc=${encodeURIComponent(job.boatLocation)}` +
+                                      `&mLoc=${encodeURIComponent(job.marinaLocation)}` +
+                                      `&scope=${encodeURIComponent(job.scopeOfWork)}`;
+
+            document.getElementById('shareLinkInput').value = targetDispatchUrl;
+            document.getElementById('qrcode').innerHTML = "";
+
+            try {
+                if (typeof QRCode !== 'undefined') {
+                    new QRCode(document.getElementById("qrcode"), {
+                        text: targetDispatchUrl,
+                        width: 180,
+                        height: 180,
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                } else {
+                    document.getElementById('qrcode').innerHTML = "<p style='color:red;font-size:12px;'>Fallback payload tracking configuration active.</p>";
+                }
+            } catch(e) {
+                document.getElementById('qrcode').innerHTML = "<p style='color:red;font-size:12px;'>Fallback payload tracking configuration active.</p>";
+            }
+
+            document.getElementById('qrModal').style.display = 'flex';
+        }
+
+        function copyLink() {
+            let copyText = document.getElementById('shareLinkInput');
+            copyText.select();
+            copyText.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(copyText.value);
+            alert("Success: Parameter payload string copied to clipboard! Ready to WhatsApp directly to technician.");
+        }
+
+        function closeModal() {
+            document.getElementById('qrModal').style.display = 'none';
+        }
+
+        function initTechMobileView(jobData) {
+            document.body.classList.add('mobile-mode');
+            
+            document.getElementById('viewBoatName').innerText = jobData.boatName;
+            document.getElementById('viewJobId').innerText = jobData.id;
+            document.getElementById('viewBoatOwner').innerText = jobData.boatOwner;
+            document.getElementById('viewJobType').innerText = jobData.type;
+            document.getElementById('viewClientPhone').innerText = jobData.clientPhone;
+            document.getElementById('viewAppointment').innerText = formatDateTime(jobData.appointment);
+            document.getElementById('viewBoatLocation').innerText = jobData.boatLocation;
+            document.getElementById('viewMarinaLocation').innerText = jobData.marinaLocation;
+            document.getElementById('viewScopeOfWork').innerText = jobData.scopeOfWork;
+
+            let select = document.getElementById('workerSelect');
+            if (!select) return;
+            select.innerHTML = '<option value="" disabled selected>Identify your profile name...</option>';
+            technicians.forEach(tech => {
+                let option = document.createElement('option');
+                option.value = tech.name;
+                option.innerText = tech.name;
+                select.appendChild(option);
+            });
+        }
+
+        function submitHours(e) {
+            e.preventDefault();
+            let tech = document.getElementById('workerSelect').value;
+            let hours = document.getElementById('hoursWorked').value;
+            alert(`Operational Validation:\nHours successfully submitted!\nAsset: ${tech}\nLog Time: ${hours} hrs.`);
+            document.getElementById('hoursForm').reset();
+        }
+    </script>
+</body>
+</html>

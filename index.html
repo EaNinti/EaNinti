@@ -17,7 +17,7 @@
             color: #333;
         }
         .container {
-            max-width: 900px;
+            max-width: 950px;
             margin: 0 auto;
             background: #fff;
             padding: 20px;
@@ -73,6 +73,12 @@
         }
         button:hover {
             background-color: #0056b3;
+        }
+        button.btn-secondary {
+            background-color: #6c757d;
+        }
+        button.btn-secondary:hover {
+            background-color: #5a6268;
         }
         button.btn-danger {
             background-color: #dc3545;
@@ -181,10 +187,10 @@
             <h1>EaNintiApp3 - Admin View</h1>
             
             <div class="nav-tabs">
-                <button class="tab-link active" onclick="openTab(event, 'Dashboard')">Job Dashboard</button>
-                <button class="tab-link" onclick="openTab(event, 'CreateJob')">Create Job Card</button>
-                <button class="tab-link" onclick="openTab(event, 'Invoicing')">Invoicing</button>
-                <button class="tab-link" onclick="openTab(event, 'Settings')">Settings</button>
+                <button class="tab-link active" id="tab-Dashboard" onclick="openTab(event, 'Dashboard')">Job Dashboard</button>
+                <button class="tab-link" id="tab-CreateJob" onclick="openTab(event, 'CreateJob')">Create Job Card</button>
+                <button class="tab-link" id="tab-Invoicing" onclick="openTab(event, 'Invoicing')">Invoicing</button>
+                <button class="tab-link" id="tab-Settings" onclick="openTab(event, 'Settings')">Settings</button>
             </div>
 
             <!-- TAB: JOB DASHBOARD -->
@@ -208,10 +214,13 @@
                 </table>
             </div>
 
-            <!-- TAB: CREATE JOB CARD -->
+            <!-- TAB: CREATE / EDIT JOB CARD -->
             <div id="CreateJob" class="tab-content">
-                <h2>Create Job Card</h2>
-                <form id="jobForm" onsubmit="addJobCard(event)">
+                <h2 id="formTabHeader">Create Job Card</h2>
+                <form id="jobForm" onsubmit="saveJobCard(event)">
+                    <!-- Hidden input to track if we are editing an existing job -->
+                    <input type="hidden" id="editJobId" value="">
+                    
                     <div class="form-group">
                         <label for="boatName">Boat Name:</label>
                         <input type="text" id="boatName" required>
@@ -242,7 +251,10 @@
                         <label for="scopeOfWork">Scope of Work:</label>
                         <textarea id="scopeOfWork" rows="4" required></textarea>
                     </div>
-                    <button type="submit">Generate Job Card</button>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit" id="submitJobBtn">Generate Job Card</button>
+                        <button type="button" class="btn-secondary" id="cancelEditBtn" style="display: none;" onclick="resetJobForm()">Cancel Edit</button>
+                    </div>
                 </form>
             </div>
 
@@ -421,7 +433,11 @@
                 tablinks[i].classList.remove("active");
             }
             document.getElementById(tabName).classList.add("active");
-            evt.currentTarget.classList.add("active");
+            if (evt) {
+                evt.currentTarget.classList.add("active");
+            } else {
+                document.getElementById('tab-' + tabName).classList.add("active");
+            }
         }
 
         function renderJobsTable() {
@@ -438,6 +454,7 @@
                     <td>${job.techs.join(', ')}</td>
                     <td>
                         <button onclick="dispatchJob('${job.id}')" style="padding: 4px 10px; font-size: 13px;">📲 Dispatch</button>
+                        <button onclick="editJobCard('${job.id}')" style="padding: 4px 10px; font-size: 13px; background-color: #ffc107; color: #000;">✏️ Edit</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -481,13 +498,47 @@
             });
         }
 
-        function addJobCard(e) {
+        function editJobCard(jobId) {
+            const job = jobs.find(j => j.id === jobId);
+            if (!job) return;
+
+            // Populate form fields
+            document.getElementById('editJobId').value = job.id;
+            document.getElementById('boatName').value = job.boatName;
+            document.getElementById('boatOwner').value = job.boatOwner;
+            document.getElementById('clientPhone').value = job.clientPhone;
+            document.getElementById('boatLocation').value = job.boatLocation;
+            document.getElementById('marinaLocation').value = job.marinaLocation;
+            document.getElementById('scopeOfWork').value = job.scopeOfWork;
+
+            // Uncheck all first, then check assigned technicians
+            document.querySelectorAll('input[name="assignedTechs"]').forEach(cb => {
+                cb.checked = job.techs.includes(cb.value);
+            });
+
+            // Update UI elements to reflect editing mode
+            document.getElementById('formTabHeader').innerText = "Edit Job Card: " + job.id;
+            document.getElementById('submitJobBtn').innerText = "Update Job Card";
+            document.getElementById('cancelEditBtn').style.display = "inline-block";
+
+            // Open the form tab
+            openTab(null, 'CreateJob');
+        }
+
+        function resetJobForm() {
+            document.getElementById('jobForm').reset();
+            document.getElementById('editJobId').value = "";
+            document.getElementById('formTabHeader').innerText = "Create Job Card";
+            document.getElementById('submitJobBtn').innerText = "Generate Job Card";
+            document.getElementById('cancelEditBtn').style.display = "none";
+        }
+
+        function saveJobCard(e) {
             e.preventDefault();
-            // Pull selections from multiple chosen checkboxes
+            const editId = document.getElementById('editJobId').value;
             const selectedTechs = Array.from(document.querySelectorAll('input[name="assignedTechs"]:checked')).map(el => el.value);
 
-            const newJob = {
-                id: "EAN-" + (2000 + jobs.length + 1),
+            const jobPayload = {
                 boatName: document.getElementById('boatName').value,
                 boatOwner: document.getElementById('boatOwner').value,
                 clientPhone: document.getElementById('clientPhone').value,
@@ -497,14 +548,26 @@
                 scopeOfWork: document.getElementById('scopeOfWork').value
             };
 
-            jobs.push(newJob);
-            document.getElementById('jobForm').reset();
-            refreshAdminUI();
-            
-            let tablinks = document.getElementsByClassName("tab-link");
-            tablinks[0].click(); // Route view to Dashboard
+            if (editId) {
+                // Find existing job index and overwrite details
+                const index = jobs.findIndex(j => j.id === editId);
+                if (index !== -1) {
+                    jobs[index] = { id: editId, ...jobPayload };
+                }
+                resetJobForm();
+            } else {
+                // Generate a fresh unique ID for a brand new job card
+                const newJob = {
+                    id: "EAN-" + (2000 + jobs.length + 1),
+                    ...jobPayload
+                };
+                jobs.push(newJob);
+                resetJobForm();
+                dispatchJob(newJob.id); // Trigger dispatch layout for brand new cards immediately
+            }
 
-            dispatchJob(newJob.id);
+            refreshAdminUI();
+            openTab(null, 'Dashboard'); // Route back to master console list view
         }
 
         function addTechnician(e) {
@@ -542,7 +605,6 @@
 
             let finalInvoiceTotal = 0;
 
-            // Compute lines evenly distributed across all assigned operational technicians
             job.techs.forEach(techName => {
                 const techObj = technicians.find(t => t.name === techName);
                 const activeRate = techObj ? (rateType === 'mates' ? techObj.matesRate : techObj.rate) : 60; 
@@ -559,10 +621,9 @@
                 tbody.appendChild(tr);
             });
 
-            // Total Summary Row
             const totalTr = document.createElement('tr');
             totalTr.innerHTML = `
-                <td colspan="3" style="text-align: right; font-weight: bold;">Invoice Total Balance Due (XCD/USD):</td>
+                <td colspan="3" style="text-align: right; font-weight: bold;">Invoice Total Balance Due:</td>
                 <td style="background: #e9ecef; font-size: 18px; color: #28a745;"><strong>$${finalInvoiceTotal.toFixed(2)}</strong></td>
             `;
             tbody.appendChild(totalTr);

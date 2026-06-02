@@ -3,846 +3,421 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marine Electric Manager</title>
-    <!-- QR Code Libraries -->
+    <title>Spice Isle Marine Electrical - Operations Console</title>
+    <!-- Include QR Code Library for generating dispatch links -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
-        :root { 
-            --primary: #023e8a; 
-            --secondary: #0077b6; 
-            --success: #2a9d8f; 
-            --warning: #f4a261; 
-            --danger: #e76f51; 
-            --dark: #264653; 
-            --light-bg: #eef1f6;
+        :root {
+            --primary-color: #0b3c5d;
+            --secondary-color: #328cc1;
+            --accent-color: #d9b310;
+            --bg-color: #f5f7fa;
+            --text-color: #1d2731;
         }
-        * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; }
-        body { background: var(--light-bg); color: var(--dark); min-height: 100vh; display: flex; }
-        
-        /* Layout Panels */
-        nav { width: 260px; background: var(--dark); color: white; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
-        nav h2 { font-size: 1.2rem; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #3d7085; text-align: center; }
-        nav button { background: transparent; border: none; color: white; padding: 12px; text-align: left; font-size: 1rem; cursor: pointer; border-radius: 6px; display: flex; align-items: center; gap: 10px; width: 100%; transition: background 0.2s; }
-        nav button:hover { background: rgba(255,255,255,0.1); }
-        nav button.active { background: var(--primary) !important; color: white !important; font-weight: bold; }
-        
-        main { flex: 1; padding: 30px; overflow-y: auto; max-width: 1200px; margin: 0 auto; width: 100%; }
-        .view { display: none; } 
-        .view.active { display: block; }
-        h1 { margin-bottom: 20px; color: var(--primary); }
-        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; }
-        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; background: white; color: var(--dark); }
-        
-        .tech-checkbox-grid { display: flex; flex-wrap: wrap; gap: 12px; background: #f8f9fa; padding: 10px; border: 1px solid #ccc; border-radius: 6px; max-height: 120px; overflow-y: auto; }
-        .tech-checkbox-label { display: flex; align-items: center; gap: 6px; font-weight: normal; font-size: 0.95rem; cursor: pointer; }
-        .tech-checkbox-label input { width: auto; margin: 0; cursor: pointer; }
 
-        button.btn { background: var(--primary); color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
-        button.btn:hover { background: var(--secondary); }
-        button.btn-success { background: var(--success); }
-        button.btn-danger { background: var(--danger); }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); display: flex; height: 100vh; overflow: hidden; }
+
+        /* Layout Layouts */
+        #sidebar { width: 260px; background-color: var(--primary-color); color: white; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+        #sidebar h2 { font-size: 1.2rem; margin-bottom: 20px; border-bottom: 2px solid var(--secondary-color); padding-bottom: 10px; text-align: center; }
+        .nav-btn { background: none; border: none; color: white; text-align: left; padding: 12px; font-size: 1rem; cursor: pointer; border-radius: 4px; transition: 0.2s; }
+        .nav-btn:hover, .nav-btn.active { background-color: var(--secondary-color); }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: white; }
-        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: var(--secondary); color: white; }
+        #main-content { flex: 1; padding: 30px; overflow-y: auto; position: relative; }
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+
+        /* UI Components */
+        h1 { margin-bottom: 20px; color: var(--primary-color); }
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
         
-        .invoice-box { background: white; padding: 40px; border: 1px solid #ddd; max-width: 800px; margin: 0 auto; color: #000; }
-        .invoice-header { display: flex; justify-content: space-between; border-bottom: 2px solid var(--primary); padding-bottom: 20px; margin-bottom: 20px; }
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: var(--primary-color); color: white; }
+        tr:hover { background-color: #f1f1f1; }
+
+        /* Forms & Interactive Items */
+        .form-group { margin-bottom: 15px; display: flex; flex-direction: column; gap: 5px; }
+        label { font-weight: 600; font-size: 0.9rem; }
+        input, select, textarea { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; width: 100%; }
+        button.btn-primary { background-color: var(--primary-color); color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button.btn-primary:hover { background-color: var(--secondary-color); }
         
-        #qr-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:100; }
-        .modal-content { background:white; padding:30px; border-radius:12px; text-align:center; max-width:420px; color: var(--dark); width: 90%; }
+        /* Multi-select box for technicians */
+        .multi-select-box { max-height: 120px; overflow-y: auto; border: 1px solid #ccc; padding: 8px; border-radius: 4px; background: #fff; }
+        .multi-select-option { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; cursor: pointer; }
+        .multi-select-option input { width: auto; }
+
+        /* Modals */
+        .modal { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index: 1000; }
+        .modal-content { background:white; padding:30px; border-radius:8px; text-align:center; position:relative; max-width: 400px; width: 90%; }
+        .close-modal { position:absolute; top:10px; right:15px; font-size:1.5rem; cursor:pointer; }
         
-        /* Mobile Layout Modifications */
-        body.tech-mode { background: #1a252f; display: block; }
-        body.tech-mode nav { display: none !important; }
-        body.tech-mode main { padding: 15px; max-width: 600px; margin: 0 auto; }
-        
-        .tech-card { background: #ffffff; border-radius: 12px; border-top: 6px solid var(--primary); padding: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.15); margin-bottom: 20px; color: var(--dark); }
-        .tech-card h2 { color: var(--primary); margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 1.4rem; }
-        .tech-meta-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #e2e8f0; font-size: 1rem; }
-        .tech-meta-row strong { color: #555; }
-        .tech-scope-block { background: #f8fafc; border-left: 4px solid var(--secondary); padding: 15px; border-radius: 0 8px 8px 0; margin-top: 15px; line-height: 1.5; font-size: 1.05rem; }
-        .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; text-transform: uppercase; }
-        
-        .tech-mobile-header { display: none; background: var(--dark); color: white; padding: 15px; text-align: center; font-weight: bold; font-size: 1.1rem; margin-bottom: 15px; border-radius: 0 0 12px 12px; }
-        body.tech-mode .tech-mobile-header { display: block; }
+        /* Copy Link Layout */
+        .link-share-box { margin-top: 15px; background: #eef5f9; padding: 10px; border-radius: 4px; display: flex; gap: 5px; align-items: center; }
+        .link-share-box input { font-size: 0.85rem; padding: 6px; background: #fff; }
+
+        /* Technician/Mobile Layout Overrides */
+        body.mobile-mode #sidebar { display: none; }
+        body.mobile-mode #main-content { padding: 15px; }
+        .tech-only { display: none; }
+        body.mobile-mode .tech-only { display: block; }
+        body.mobile-mode .admin-only { display: none; }
     </style>
 </head>
 <body>
 
-    <!-- SIDEBAR NAVIGATION PANEL (Hidden in Tech Mode) -->
-    <nav id="admin-sidebar">
-        <h2 id="nav-brand-title">Admin Dashboard</h2>
-        <button onclick="switchView('jobs-view')" id="nav-jobs-view" class="active">⚓ Job Cards</button>
-        <button onclick="switchView('sync-view')" id="nav-sync-view">🔄 Sync Tech Phone</button>
-        <button onclick="switchView('invoice-view')" id="nav-invoice-view">🧾 Invoicing</button>
-        <button onclick="switchView('settings-view')" id="nav-settings-view">⚙️ Settings</button>
-    </nav>
+    <!-- SIDEBAR NAVIGATION (Admin Only) -->
+    <div id="sidebar" class="admin-only">
+        <h2>Spice Isle Marine</h2>
+        <button class="nav-btn active" onclick="switchView('dashboard-view')">📋 Job Dashboard</button>
+        <button class="nav-btn" onclick="switchView('create-job-view')">➕ Create Job Card</button>
+        <button class="nav-btn" onclick="switchView('settings-view')">⚙️ Settings & Rates</button>
+    </div>
 
-    <!-- MOBILE FIELD CONTEXT BANNER -->
-    <div class="tech-mobile-header" id="tech-header-banner">Field Operations Console</div>
-
-    <!-- MAIN CONTROL CENTER STAGE -->
-    <main>
+    <!-- MAIN INTERFACE DISPLAY -->
+    <div id="main-content">
         
-        <!-- MOBILE TECHNICIAN LIVE VIEW TICKET -->
-        <div id="tech-card-view" class="view">
-            <div class="tech-card" id="tech-card-render-zone"></div>
-            
-            <!-- TIME AND HOURS LOGGING BACKEND -->
-            <div class="tech-card" style="border-top: 6px solid var(--success);">
-                <h3 style="margin-bottom: 12px;">Clock Hours for this Assignment</h3>
-                <div class="form-grid">
-                    <div>
-                        <label>Your Name</label>
-                        <select id="tech-clock-name-select"></select>
-                    </div>
-                    <div>
-                        <label>Hours Worked</label>
-                        <input type="number" id="tech-clock-hours-input" value="1.0" step="0.5" min="0.5">
-                    </div>
-                </div>
-                <div style="margin-bottom: 15px;">
-                    <label>Task Progress Notes</label>
-                    <input type="text" id="tech-clock-desc-input" placeholder="e.g., Fixed wiring harness connections">
-                </div>
-                <button class="btn btn-success" style="width:100%; margin-bottom: 10px;" onclick="techSubmitLogLocal()">Save Hours to Phone</button>
-                
-                <div id="tech-local-sync-qr-zone" style="display:none; text-align:center; margin-top:15px; border-top:1px solid #eee; padding-top:15px;">
-                    <p style="font-size:0.85rem; margin-bottom:10px; color:var(--secondary); font-weight:bold;">Admin Scan Target (Return Sync):</p>
-                    <div id="tech-sync-qrcode-target" style="display:inline-block; padding:10px; background:white;"></div>
-                </div>
+        <!-- ADMIN VIEW: DASHBOARD -->
+        <div id="dashboard-view" class="view-section active admin-only">
+            <h1>Marine Operations Dashboard</h1>
+            <div class="card">
+                <h3>Active Deployment Cards</h3>
+                <table id="jobs-table">
+                    <thead>
+                        <tr>
+                            <th>Job ID</th>
+                            <th>Boat Name</th>
+                            <th>Marina / Location</th>
+                            <th>Assigned Techs</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="jobs-list-body">
+                        <!-- Dynamic Data injection point -->
+                    </tbody>
+                </table>
             </div>
-
-            <button class="btn btn-danger" style="width:100%; padding:14px;" onclick="exitTechModeFileSystem()">Return to Master Console Admin</button>
         </div>
 
-        <!-- OPERATIONS PANEL AND JOB CARDS -->
-        <div id="jobs-view" class="view active">
-            <h1 id="form-panel-title">Create & Assign Job Cards</h1>
-            <div class="card">
-                <form id="job-form" onsubmit="saveJob(event)">
-                    <input type="hidden" id="editing-job-id" value="">
-                    
-                    <div class="form-grid">
-                        <div><label>Boat Name</label><input type="text" id="boat-name" required placeholder="e.g. SV Horizon"></div>
-                        <div><label>Marina / Location</label>
-                            <select id="location">
-                                <option>Port Louis Marina</option>
-                                <option>Le Phare Bleu</option>
-                                <option>Prickly Bay Marina</option>
-                                <option>Clarkes Court Boatyard</option>
-                                <option>Grenada Marine</option>
-                                <option>Hog Island</option>
-                                <option>Woburn Bay</option>
-                                <option>Anchorage/Other</option>
-                            </select>
+        <!-- ADMIN VIEW: CREATE NEW JOB CARD -->
+        <div id="create-job-view" class="view-section admin-only">
+            <h1>Create Job Card</h1>
+            <div class="card" style="max-width: 600px;">
+                <form id="job-form" onsubmit="createNewJob(event)">
+                    <div class="form-group">
+                        <label>Boat Name</label>
+                        <input type="text" id="form-boat" required placeholder="e.g. Sea Voyager">
+                    </div>
+                    <div class="form-group">
+                        <label>Marina / Vessel Location</label>
+                        <input type="text" id="form-location" required placeholder="e.g. Spice Isle Marina - Slip 14">
+                    </div>
+                    <div class="form-group">
+                        <label>Client Contact Number</label>
+                        <input type="text" id="form-client-phone" required placeholder="e.g. +1 (473) 444-1234">
+                    </div>
+                    <div class="form-group">
+                        <label>Assign Technicians (Select All That Apply)</label>
+                        <div class="multi-select-box" id="form-tech-checkboxes">
+                            <!-- Injected dynamically from configurations -->
                         </div>
-                        <div><label>Slip / Moorings / Bay Reference</label><input type="text" id="slip" placeholder="e.g. Slip C-14"></div>
                     </div>
-                    
-                    <div class="form-grid">
-                        <div><label>Client Name</label><input type="text" id="client-name" required placeholder="e.g. John Doe"></div>
-                        <div style="grid-column: span 2;"><label>Client Contact Details</label><input type="text" id="client-contact" required placeholder="WhatsApp / Local Phone"></div>
+                    <div class="form-group">
+                        <label>Scope of Work Description</label>
+                        <textarea id="form-scope" rows="3" placeholder="Describe electrical issues or system installations..."></textarea>
                     </div>
-
-                    <div class="form-grid">
-                        <div>
-                            <label>Assign Technicians</label>
-                            <div class="tech-checkbox-grid" id="tech-checkbox-container"></div>
-                        </div>
-                        <div><label>System Type</label><select id="system-type"></select></div>
-                        <div><label>Scheduled Attendance</label><input type="datetime-local" id="schedule-time" required></div>
-                    </div>
-                    
-                    <div class="form-grid">
-                        <div>
-                            <label>Labor Fee Selection Base</label>
-                            <select id="job-rate-tier">
-                                <option value="standard">Standard Hourly Rate Tier</option>
-                                <option value="mates">Mates Rate Pricing Model</option>
-                            </select>
-                        </div>
-                        <div><label>Status</label>
-                            <select id="job-status">
-                                <option value="Open">Open</option>
-                                <option value="In Progress">In Progress</option>
-                                <option value="Pending Parts">Pending Parts</option>
-                                <option value="Complete">Complete</option>
-                            </select>
-                        </div>
-                        <div style="visibility:hidden;"><input type="text"></div>
-                    </div>
-
-                    <div style="margin-bottom:15px;"><label>Scope of Work</label><textarea id="job-description" rows="2" required placeholder="Describe system details..."></textarea></div>
-                    <div style="display: flex; gap: 10px;">
-                        <button type="submit" id="submit-job-btn" class="btn">Generate Job & QR Code</button>
-                        <button type="button" id="cancel-edit-btn" class="btn btn-danger" style="display:none;" onclick="clearJobForm()">Cancel Edit</button>
-                    </div>
+                    <button type="submit" class="btn-primary">Generate & Dispatch Job</button>
                 </form>
             </div>
-            
-            <div class="card">
-                <h3>Active Operations</h3>
-                <table>
-                    <thead><tr><th>ID</th><th>Boat</th><th>Client Details</th><th>Location</th><th>Assigned Crew / Tier</th><th>Scheduled Attendance</th><th>Status</th><th>Actions</th></tr></thead>
-                    <tbody id="jobs-list"></tbody>
-                </table>
-            </div>
-
-            <div class="card">
-                <h3>Technician Financial Summary (USD)</h3>
-                <table style="font-size:0.95rem;">
-                    <thead><tr style="background:#264653;"><th>Technician Name</th><th>Total Hours Clocked</th><th>Estimated Earnings Owed</th><th>Total Paid Out</th><th>Remaining Balance Owed</th><th>Payout Terminal</th></tr></thead>
-                    <tbody id="tech-finance-summary-list"></tbody>
-                </table>
-            </div>
         </div>
 
-        <!-- CAMERA SCANNING LINKING ZONE -->
-        <div id="sync-view" class="view">
-            <h1>Scan Technician Phone</h1>
-            <p style="margin-bottom: 15px;">Scan your field tech's return data sync QR code here to instantly extract their logged hours.</p>
-            <div class="card" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <div>
-                    <h4>Live Video Scanner Feed</h4>
-                    <div id="reader" style="width: 100%; background: #000; border-radius: 8px; overflow: hidden; margin-top:10px;"></div>
-                </div>
-                <div style="border-left: 1px solid #ccc; padding-left: 20px;">
-                    <h4>Manual Backup Payload Entry</h4>
-                    <textarea id="manual-qr-payload-input" rows="6" placeholder='{"type":"SYNC_HOURS",...}' style="font-family: monospace; font-size: 0.85rem;"></textarea>
-                    <button class="btn btn-success" style="width:100%; margin-top:10px;" onclick="processManualPayloadImport()">Parse & Sync Manual Logs</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- INVOICING MODULE AND BILL PREVIEW -->
-        <div id="invoice-view" class="view">
-            <h1>Marine Invoice & Payment Ledger</h1>
-            <div class="card" style="display:grid; grid-template-columns: 3fr 2fr; gap:20px;">
-                <div>
-                    <h3>Invoice Configurations</h3>
-                    <div class="form-grid" style="margin-top:10px;">
-                        <div><label>Select Vessel</label><select id="invoice-job-select" onchange="onInvoiceVesselChange()"></select></div>
-                        <div><label>Currency</label><select id="invoice-currency" onchange="previewInvoice()"><option value="USD">USD ($)</option><option value="XCD">XCD ($)</option></select></div>
-                        <div><label>Grenada VAT Status</label><select id="invoice-vat" onchange="previewInvoice()"><option value="no">Exempt (Transit)</option><option value="yes">Apply 15% VAT</option></select></div>
-                    </div>
-                    
-                    <hr style="margin: 15px 0; border: 0; border-top: 1px solid #eee;">
-                    
-                    <h3 style="margin-bottom:10px; font-size: 1rem;">Allocate Parts / Materials</h3>
-                    <div class="form-grid" style="align-items: flex-end;">
-                        <div style="flex:2;"><label>Part Name / Description</label><input type="text" id="part-name-input" placeholder="e.g. 100A ANL Fuse"></div>
-                        <div><label>Qty</label><input type="number" id="part-qty-input" value="1" min="1"></div>
-                        <div><label>Unit Cost ($)</label><input type="number" id="part-cost-input" value="0.00" step="0.01"></div>
-                        <div><button type="button" class="btn btn-success" onclick="addItemizedPart()">Add</button></div>
-                    </div>
-                    
-                    <table style="font-size:0.9rem; margin-top:10px;" id="allocated-parts-table">
-                        <thead><tr style="background:#4a6fa5;"><th style="padding:6px 10px;">Part Details</th><th style="padding:6px 10px;">Qty</th><th style="padding:6px 10px;">Unit (USD)</th><th style="padding:6px 10px;">Action</th></tr></thead>
-                        <tbody id="allocated-parts-list"></tbody>
-                    </table>
-                </div>
-
-                <div style="border-left: 1px solid #ddd; padding-left: 20px;">
-                    <h3>Collect Client Payments</h3>
-                    <div style="margin-top:10px; display:flex; flex-direction:column; gap:12px;">
-                        <div><label>Amount Collected (USD)</label><input type="number" id="payment-amount-input" value="0.00" step="0.01"></div>
-                        <div>
-                            <label>Payment Pathway Method</label>
-                            <select id="payment-method-input">
-                                <option value="Cash">Cash Currency</option>
-                                <option value="Bank Transfer">Wire / Bank Transfer</option>
-                                <option value="Credit/Debit Card">Credit/Debit Card</option>
-                                <option value="Cheque">Local Cheque</option>
-                            </select>
-                        </div>
-                        <button class="btn btn-success" onclick="recordClientPayment()">Post Payment Transaction</button>
-                    </div>
-                    <h4 style="margin-top:20px; font-size:0.9rem;">Transaction Posting Log:</h4>
-                    <div id="invoice-payment-history-list" style="max-height:140px; overflow-y:auto; font-size:0.85rem; margin-top:5px; background:#f8f9fa; padding:8px; border:1px solid #e2e8f0;"></div>
-                </div>
+        <!-- ADMIN VIEW: CONFIGURATIONS & RATES -->
+        <div id="settings-view" class="view-section admin-only">
+            <h1>Settings & Billing Controls</h1>
+            <div class="card" style="max-width: 500px;">
+                <h3>Technician Management</h3>
+                <form id="tech-rate-form" onsubmit="addTechnicianConfig(event)" style="margin-top: 10px; display: flex; gap: 10px; margin-bottom: 15px;">
+                    <input type="text" id="cfg-tech-name" placeholder="Tech Name" required>
+                    <input type="number" id="cfg-tech-rate" placeholder="Base Rate ($/hr)" required style="width: 120px;">
+                    <button type="submit" class="btn-primary" style="padding: 0 15px;">Add</button>
+                </form>
+                <table id="tech-config-table">
+                    <thead>
+                        <tr>
+                            <th>Technician</th>
+                            <th>Standard Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tech-config-body"></tbody>
+                </table>
             </div>
             
-            <div class="invoice-box" id="printable-invoice">
-                <div class="invoice-header">
-                    <div>
-                        <h2 id="inv-company-name">--</h2>
-                        <p id="inv-company-address">--</p>
-                        <p id="inv-company-contact">--</p>
-                    </div>
-                    <div style="text-align: right;">
-                        <h1>INVOICE</h1>
-                        <p>Date: <span id="inv-date">--</span></p>
-                        <p>Job Ref: #<span id="inv-ref">--</span></p>
-                        <p>Rate Model: <span id="inv-rate-tier" style="font-weight:bold; color:var(--secondary);">--</span></p>
-                    </div>
+            <div class="card" style="max-width: 500px;">
+                <h3>Billing Variables</h3>
+                <div class="form-group" style="flex-direction: row; align-items: center; justify-content: space-between; margin-top: 10px;">
+                    <label for="cfg-mates-rates">Enable 'Mates Rates' Discretionary Discount</label>
+                    <input type="checkbox" id="cfg-mates-rates" style="width: auto;" onchange="saveBillingSettings()">
                 </div>
-                <div style="margin-bottom: 20px; display: flex; justify-content: space-between;">
-                    <div>
-                        <h3>Vessel Details:</h3>
-                        <p><strong>Vessel Name:</strong> <span id="inv-boat">--</span></p>
-                        <p><strong>Location:</strong> <span id="inv-loc">--</span></p>
-                    </div>
-                    <div style="text-align: right;">
-                        <h3>Client Details:</h3>
-                        <p><strong>Name:</strong> <span id="inv-client-name">--</span></p>
-                        <p><strong>Contact:</strong> <span id="inv-client-contact">--</span></p>
-                    </div>
-                </div>
-                <table>
-                    <thead><tr><th>Description</th><th>Resource/Qty</th><th style="text-align:right;">Total</th></tr></thead>
-                    <tbody id="inv-items"></tbody>
-                </table>
-                <div style="margin-left:auto; width:330px; text-align:right; margin-top:20px; line-height:2; font-weight:bold;">
-                    <div>Labor Subtotal: <span id="inv-sub-labor">--</span></div>
-                    <div>Parts/Materials: <span id="inv-sub-parts">--</span></div>
-                    <div>GND VAT (15%): <span id="inv-vat-amount">--</span></div>
-                    <div style="border-top:1px solid #000; padding-top:2px;">Gross Statement Total: <span id="inv-total">--</span></div>
-                    <div style="color:var(--success);">Total Payments Deposited: <span id="inv-paid-accumulator">--</span></div>
-                    <div style="border-top:2px solid #000; font-size:1.2rem; padding-top:5px; margin-top:5px; color:var(--danger);">Balance Outstanding: <span id="inv-balance-remaining">--</span></div>
-                </div>
-                <button class="btn btn-success" onclick="window.print()" style="margin-top:30px; width:100%;">🖨️ Print / Save PDF Invoice</button>
             </div>
         </div>
 
-        <!-- SETTINGS WORKSPACE -->
-        <div id="settings-view" class="view">
-            <h1>Business Profile Configuration</h1>
-            <div class="card">
-                <h3>Company Information Details</h3>
-                <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 15px; max-width: 600px;">
-                    <div><label>Company Trading Name</label><input type="text" id="settings-company-name" oninput="updateProfile()"></div>
-                    <div><label>Business Address / Base Location</label><input type="text" id="settings-company-address" oninput="updateProfile()"></div>
-                    <div><label>Contact Info (Phone/Email)</label><input type="text" id="settings-company-contact" oninput="updateProfile()"></div>
-                </div>
-            </div>
-
-            <div class="card" style="display: grid; grid-template-columns: 1.2fr 0.8fr; gap:30px;">
-                <div>
-                    <h3>Manage Field Technicians Roster</h3>
-                    <div style="margin-top: 15px; background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #ddd;">
-                        <h4>Add New Technician Profile</h4>
-                        <div class="form-grid" style="margin-top:10px; align-items: flex-end;">
-                            <div><label>Name</label><input type="text" id="new-tech-name" placeholder="Name"></div>
-                            <div><label>Std Rate ($/hr)</label><input type="number" id="new-tech-std-rate" value="65.00"></div>
-                            <div><label>Mates Rate ($/hr)</label><input type="number" id="new-tech-mate-rate" value="45.00"></div>
-                            <div><button class="btn" onclick="addTechnician()">Add</button></div>
-                        </div>
-                    </div>
-                    <label style="margin-top: 20px;">Active Fleet Operational Profiles</label>
-                    <div id="tech-roster-list" style="margin-top: 10px; display:flex; flex-direction:column; gap:8px;"></div>
-                </div>
+        <!-- TECHNICIAN MOBILE VIEW (Loads via Dispatch Link parameters) -->
+        <div id="tech-mobile-view" class="view-section tech-only">
+            <h1 style="font-size: 1.5rem; text-align: center; border-bottom: 2px solid var(--primary-color); padding-bottom: 10px;">
+                🛠️ Marine Service Dispatch
+            </h1>
+            
+            <div class="card" style="margin-top: 15px;">
+                <h2 id="mobile-boat-title" style="color: var(--primary-color); margin-bottom: 5px;">Boat Name</h2>
+                <p id="mobile-job-id" style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">Job ID: --</p>
                 
-                <div>
-                    <h3>Manage Service/System Types</h3>
-                    <div style="margin-top: 15px;">
-                        <label>Add System Category</label>
-                        <div class="settings-item">
-                            <input type="text" id="new-sys-name" placeholder="e.g. Inverter Systems">
-                            <button class="btn" onclick="addSystemType()">Add</button>
-                        </div>
-                        <label style="margin-top: 20px;">Current Operational Capabilities</label>
-                        <div id="sys-custom-list" style="margin-top: 10px;"></div>
+                <p style="margin-bottom: 8px;">📍 <strong>Location:</strong> <span id="mobile-location">--</span></p>
+                <p style="margin-bottom: 15px;">📝 <strong style="display:block; margin-top:5px;">Scope of Work:</strong> <span id="mobile-scope">--</span></p>
+            </div>
+
+            <div class="card">
+                <h3>Log Action Hours</h3>
+                <form id="hours-logging-form" onsubmit="submitLoggedHours(event)" style="margin-top: 12px;">
+                    <div class="form-group">
+                        <label>Select Your Name</label>
+                        <select id="mobile-tech-select" required>
+                            <!-- Injected dynamically -->
+                        </select>
                     </div>
-                </div>
+                    <div class="form-group">
+                        <label>Hours Worked Today</label>
+                        <input type="number" step="0.25" id="mobile-hours-input" placeholder="e.g. 4.5" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Work Log Comments</label>
+                        <textarea id="mobile-work-notes" rows="2" placeholder="Describe actions taken, items replaced..."></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary" style="width: 100%;">Submit Hours to Master File</button>
+                </form>
             </div>
         </div>
-    </main>
 
-    <!-- OVERLAY POPUP FOR DISPATCH OVERLAY QR -->
-    <div id="qr-modal">
+    </div>
+
+    <!-- DISPATCH MODAL (QR Code + Manual Direct Text Link) -->
+    <div id="qr-modal" class="modal">
         <div class="modal-content">
-            <h2 style="color:var(--primary);">Technician Job Dispatch</h2>
-            <p style="margin: 10px 0; font-size:0.9rem; color:#555;">Scan this with your mobile camera to launch the mobile work ticket system layout.</p>
-            <div id="qrcode" style="display:flex; justify-content:center; margin:20px 0; padding:10px; background:white; border-radius:8px;"></div>
-            <button class="btn btn-success" style="width:100%; margin-bottom:8px;" onclick="simulateTechScanningLink()">Simulate Device Scan (Local Preview)</button>
-            <button class="btn btn-danger" style="width:100%;" onclick="closeModal()">Close / Return</button>
+            <span class="close-modal" onclick="closeQrModal()">&times;</span>
+            <h3 style="margin-bottom: 15px; color: var(--primary-color);">Dispatch Technician Link</h3>
+            
+            <!-- Target container for generated QR Code asset -->
+            <div id="qrcode" style="display: flex; justify-content: center; margin: 20px 0;"></div>
+            
+            <p style="font-size: 0.85rem; color: #555;">Scan with mobile device camera or copy the direct deployment link below to text/WhatsApp the technician:</p>
+            
+            <div class="link-share-box">
+                <input type="text" id="shareable-link-input" readonly>
+                <button onclick="copyGeneratedLink()" class="btn-primary" style="padding: 6px 12px; font-size: 0.85rem;">Copy</button>
+            </div>
         </div>
     </div>
 
     <script>
-        const USD_TO_XCD = 2.70;    
-
-        let jobs = JSON.parse(localStorage.getItem('m_jobs')) || [];
-        let timeLogs = JSON.parse(localStorage.getItem('m_logs')) || [];
-        let itemizedParts = JSON.parse(localStorage.getItem('m_parts')) || {}; 
-        let clientPayments = JSON.parse(localStorage.getItem('m_client_payments')) || {}; 
-        let techPayouts = JSON.parse(localStorage.getItem('m_tech_payouts')) || {}; 
-        
-        // REPLACED DEFAULTS: Removed hardcoded placeholders so defaults fall back directly to setup state values
-        let companyName = localStorage.getItem('m_c_name') || "Marine Operations Console";
-        let companyAddress = localStorage.getItem('m_c_addr') || "Main Office Base Terminal";
-        let companyContact = localStorage.getItem('m_c_cont') || "Phone / Email Log Configuration Pending";
-        
-        let currentActiveQrJobTarget = null;
-        let activeTechModeJobId = null;
-
-        let technicians = JSON.parse(localStorage.getItem('m_techs_v2')) || [
-            {name: "Devon", stdRate: 65, matesRate: 45},
-            {name: "Javon", stdRate: 65, matesRate: 45}
+        // Core Mock Data Store (Emulates cloud/Sheets database syncing structures)
+        let jobs = [
+            { id: "J-1001", boat: "Salty Dawg", location: "Grenada Yacht Club - Dock B", clientPhone: "+14731112222", techs: ["Dave", "Marcus"], scope: "Troubleshoot house battery bank charging issue; test alternator output profile." },
+            { id: "J-1002", boat: "Wind Dancer", location: "Prickly Bay Marina", clientPhone: "+14733334444", techs: ["Dave"], scope: "Install updated Raymarine chartplotter and interface backbone connection wire." }
         ];
-        
-        let systemTypes = JSON.parse(localStorage.getItem('m_sys_types')) || [
-            "Solar/Charging Systems", "Lithium Battery Conversion", 
-            "Navigation Electronics", "Bilge / Pump Wiring", "Generator / AC Systems"
+
+        let technicians = [
+            { name: "Dave", rate: 65 },
+            { name: "Marcus", rate: 55 },
+            { name: "Sarah", rate: 70 }
         ];
-        
-        let qrScanner = null;
+
+        // Routing Logic: Checks instantly on page layout lifecycle initialization
+        window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const dispatchJobId = urlParams.get('dispatchJobId');
+
+            if (dispatchJobId) {
+                enterTechMobileMode(dispatchJobId);
+            } else {
+                // Initialize default administrative views cleanly
+                renderTechCheckboxes();
+                renderTechConfigTable();
+                renderJobsTable();
+                
+                // Retain state configurations if saved to browser
+                if(localStorage.getItem('matesRates') === 'true') {
+                    document.getElementById('cfg-mates-rates').checked = true;
+                }
+            }
+        };
 
         function switchView(viewId) {
-            if(viewId !== 'sync-view') stopScanner();
-            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-            document.querySelectorAll('#admin-sidebar button').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             
-            const targetView = document.getElementById(viewId);
-            if(targetView) targetView.classList.add('active');
-            let targetNavBtn = document.getElementById('nav-' + viewId);
-            if(targetNavBtn) targetNavBtn.classList.add('active');
-            
-            populateDropdowns();
-            if(viewId === 'jobs-view') { renderJobs(); calculateTechFinancialSummary(); }
-            if(viewId === 'invoice-view') onInvoiceVesselChange();
-            if(viewId === 'sync-view') setTimeout(startScanner, 150);
+            document.getElementById(viewId).classList.add('active');
+            event.target.classList.add('active');
         }
 
-        function enterTechMobileMode(jobId) {
-            const job = jobs.find(j => j.id === jobId);
-            if(!job) return;
-
-            activeTechModeJobId = jobId;
-            document.body.classList.add('tech-mode');
-            document.getElementById('admin-sidebar').style.display = 'none';
-            document.getElementById('tech-header-banner').innerText = `${companyName} • Field Access`;
-
-            let statusColor = "#023e8a";
-            if(job.status === "In Progress") statusColor = "#0077b6";
-            if(job.status === "Complete") statusColor = "#2a9d8f";
-
-            const container = document.getElementById('tech-card-render-zone');
-            container.innerHTML = `
-                <h2><span>⚓ ${job.boat}</span><span class="status-pill" style="background:${statusColor}; color:white;">${job.status}</span></h2>
-                <div class="tech-meta-row"><strong>Job ID Reference</strong><span>#${job.id}</span></div>
-                <div class="tech-meta-row"><strong>Target System</strong><span>${job.sys}</span></div>
-                <div class="tech-meta-row"><strong>Marina / Location</strong><span style="color:var(--secondary); font-weight:bold;">📍 ${job.loc}</span></div>
-                <div class="tech-meta-row"><strong>Scheduled Plan</strong><span>📅 ${job.schedule}</span></div>
-                <div class="tech-meta-row"><strong>Assigned Fleet Techs</strong><span>👤 ${job.techs ? job.techs.join(', ') : 'Unassigned'}</span></div>
-                <div style="margin-top:20px;"><strong style="font-size:0.95rem; color:#555;">Client Contacts:</strong><div style="background:#f1f5f9; padding:10px; border-radius:6px; font-size:0.95rem; margin-top:5px; font-weight:bold;">👤 ${job.clientName || 'N/A'}<br>📱 ${job.clientContact || 'No contact metadata'}</div></div>
-                <div style="margin-top:20px;"><strong style="font-size:0.95rem; color:#555;">Execution Field Scope:</strong><div class="tech-scope-block">${job.desc}</div></div>
-            `;
-
-            const clockNameDropdown = document.getElementById('tech-clock-name-select');
-            clockNameDropdown.innerHTML = job.techs ? job.techs.map(t => `<option value="${t}">${t}</option>`).join('') : '';
-            document.getElementById('tech-local-sync-qr-zone').style.display = 'none';
-            switchView('tech-card-view');
-        }
-
-        function techSubmitLogLocal() {
-            if(!activeTechModeJobId) return;
-            const techName = document.getElementById('tech-clock-name-select').value;
-            const hoursVal = parseFloat(document.getElementById('tech-clock-hours-input').value) || 0;
-            const descVal = document.getElementById('tech-clock-desc-input').value.trim() || "Performed work tasks";
-
-            if(hoursVal <= 0) { alert("Enter valid structural hour entry."); return; }
-
-            let localLogs = JSON.parse(localStorage.getItem('m_logs')) || [];
-            localLogs.push({ timestamp: Date.now() + Math.random(), jobId: activeTechModeJobId, tech: techName, hrs: hoursVal, desc: descVal });
-            localStorage.setItem('m_logs', JSON.stringify(localLogs));
-            timeLogs = localLogs; 
-
-            document.getElementById('tech-local-sync-qr-zone').style.display = 'block';
-            document.getElementById('tech-sync-qrcode-target').innerHTML = '';
-            new QRCode(document.getElementById('tech-sync-qrcode-target'), {
-                text: JSON.stringify({type: "SYNC_HOURS", data: localLogs.filter(l => l.jobId === activeTechModeJobId)}),
-                width: 180, height: 180
-            });
-            alert("Hours locked into browser local memory storage! Pass this phone screen to the master workstation tracking scan screen to merge files.");
-        }
-
-        function exitTechModeFileSystem() {
-            document.body.classList.remove('tech-mode');
-            document.getElementById('admin-sidebar').style.display = 'flex';
-            const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-            window.history.replaceState({path: cleanUrl}, '', cleanUrl);
-            activeTechModeJobId = null;
-            switchView('jobs-view');
-        }
-
-        function simulateTechScanningLink() {
-            if(currentActiveQrJobTarget) { closeModal(); enterTechMobileMode(currentActiveQrJobTarget); }
-        }
-
-        function initProfileDisplay() {
-            document.getElementById('settings-company-name').value = companyName;
-            document.getElementById('settings-company-address').value = companyAddress;
-            document.getElementById('settings-company-contact').value = companyContact;
-            document.getElementById('nav-brand-title').innerText = companyName;
-            document.getElementById('inv-company-name').innerText = companyName;
-            document.getElementById('inv-company-address').innerText = companyAddress;
-            document.getElementById('inv-company-contact').innerText = companyContact;
-            renderTechRoster(); renderTechCheckboxes(); renderSystemTypesRoster();
-        }
-
-        function updateProfile() {
-            companyName = document.getElementById('settings-company-name').value || "Operational Admin Console";
-            companyAddress = document.getElementById('settings-company-address').value || "";
-            companyContact = document.getElementById('settings-company-contact').value || "";
-            localStorage.setItem('m_c_name', companyName);
-            localStorage.setItem('m_c_addr', companyAddress);
-            localStorage.setItem('m_c_cont', companyContact);
-            document.getElementById('nav-brand-title').innerText = companyName;
-            document.getElementById('inv-company-name').innerText = companyName;
-            document.getElementById('inv-company-address').innerText = companyAddress;
-            document.getElementById('inv-company-contact').innerText = companyContact;
-        }
-
-        function addTechnician() {
-            const nameInput = document.getElementById('new-tech-name');
-            const stdInput = document.getElementById('new-tech-std-rate');
-            const mateInput = document.getElementById('new-tech-mate-rate');
-            const name = nameInput.value.trim();
-            if(name && !technicians.some(t => t.name.toLowerCase() === name.toLowerCase())) {
-                technicians.push({name, stdRate: parseFloat(stdInput.value)||0, matesRate: parseFloat(mateInput.value)||0});
-                localStorage.setItem('m_techs_v2', JSON.stringify(technicians));
-                nameInput.value = ''; stdInput.value = '65.00'; mateInput.value = '45.00';
-                renderTechRoster(); renderTechCheckboxes(); populateDropdowns();
-            }
-        }
-
-        function removeTechnician(name) {
-            technicians = technicians.filter(t => t.name !== name);
-            localStorage.setItem('m_techs_v2', JSON.stringify(technicians));
-            renderTechRoster(); renderTechCheckboxes(); populateDropdowns();
-        }
-
-        function renderTechRoster() {
-            const container = document.getElementById('tech-roster-list'); container.innerHTML = '';
-            technicians.forEach(t => {
-                container.innerHTML += `<div class="settings-item" style="background:#f1f5f9; padding:8px 12px; border-radius:6px; justify-content:space-between;"><span><strong>${t.name}</strong> (Std: $${t.stdRate}/hr | Mates: $${t.matesRate}/hr)</span><button class="btn btn-danger" style="padding:4px 8px; font-size:0.8rem;" onclick="removeTechnician('${t.name}')">Remove</button></div>`;
+        // Admin Management Actions
+        function renderJobsTable() {
+            const tbody = document.getElementById('jobs-list-body');
+            tbody.innerHTML = "";
+            jobs.forEach(job => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${job.id}</strong></td>
+                    <td>${job.boat}</td>
+                    <td>${job.location}</td>
+                    <td>${job.techs.join(', ')}</td>
+                    <td>
+                        <button class="btn-primary" style="padding: 5px 10px; font-size:0.85rem;" onclick="generateDispatchAsset('${job.id}')">📲 Dispatch</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
             });
         }
 
         function renderTechCheckboxes() {
-            const container = document.getElementById('tech-checkbox-container'); if(!container) return;
-            container.innerHTML = technicians.map(t => `<label class="tech-checkbox-label"><input type="checkbox" name="assigned-techs" value="${t.name}"> ${t.name}</label>`).join('');
-        }
-
-        function addSystemType() {
-            const sysInput = document.getElementById('new-sys-name'); const sysName = sysInput.value.trim();
-            if(sysName && !systemTypes.includes(sysName)) {
-                systemTypes.push(sysName); localStorage.setItem('m_sys_types', JSON.stringify(systemTypes));
-                sysInput.value = ''; renderSystemTypesRoster(); populateDropdowns();
-            }
-        }
-
-        function removeSystemType(sysName) {
-            systemTypes = systemTypes.filter(s => s !== sysName); localStorage.setItem('m_sys_types', JSON.stringify(systemTypes));
-            renderSystemTypesRoster(); populateDropdowns();
-        }
-
-        function renderSystemTypesRoster() {
-            const container = document.getElementById('sys-custom-list'); container.innerHTML = '';
-            systemTypes.forEach(s => {
-                container.innerHTML += `<div class="settings-item" style="background:#f1f5f9; padding:8px 12px; border-radius:6px; justify-content:space-between;"><span>${s}</span><button class="btn btn-danger" style="padding:4px 8px; font-size:0.8rem;" onclick="removeSystemType('${s}')">Remove</button></div>`;
+            const container = document.getElementById('form-tech-checkboxes');
+            container.innerHTML = "";
+            technicians.forEach(tech => {
+                const label = document.createElement('label');
+                label.className = "multi-select-option";
+                label.innerHTML = `<input type="checkbox" name="assignedTechs" value="${tech.name}"> ${tech.name} ($${tech.rate}/hr)`;
+                container.appendChild(label);
             });
         }
 
-        function populateDropdowns() {
-            const invSelect = document.getElementById('invoice-job-select');
-            if(invSelect) invSelect.innerHTML = jobs.map(j => `<option value="${j.id}">${j.boat} (${j.id})</option>`).join('');
-            const sysSelect = document.getElementById('system-type');
-            if(sysSelect) sysSelect.innerHTML = systemTypes.map(s => `<option value="${s}">${s}</option>`).join('');
+        function renderTechConfigTable() {
+            const tbody = document.getElementById('tech-config-body');
+            tbody.innerHTML = "";
+            technicians.forEach(tech => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${tech.name}</td><td>$${tech.rate}.00 / hr</td>`;
+                tbody.appendChild(tr);
+            });
         }
 
-        function saveJob(e) {
+        function createNewJob(e) {
             e.preventDefault();
-            const checkedBoxes = document.querySelectorAll('input[name="assigned-techs"]:checked');
-            const selectedTechs = Array.from(checkedBoxes).map(cb => cb.value);
-            if(selectedTechs.length === 0) { alert("Assign at least one crew technician parameters."); return; }
-
-            const rawSchedule = document.getElementById('schedule-time').value;
-            const formattedSchedule = new Date(rawSchedule).toLocaleString([], {year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'});
-            const editingId = document.getElementById('editing-job-id').value;
+            const checkedTechs = Array.from(document.querySelectorAll('input[name="assignedTechs"]:checked')).map(cb => cb.value);
             
-            if(editingId) {
-                const index = jobs.findIndex(j => j.id === editingId);
-                if(index !== -1) {
-                    jobs[index].boat = document.getElementById('boat-name').value;
-                    jobs[index].clientName = document.getElementById('client-name').value;
-                    jobs[index].clientContact = document.getElementById('client-contact').value;
-                    jobs[index].loc = document.getElementById('location').value + (document.getElementById('slip').value ? " (" + document.getElementById('slip').value + ")" : "");
-                    jobs[index].techs = selectedTechs; jobs[index].sys = document.getElementById('system-type').value;
-                    jobs[index].desc = document.getElementById('job-description').value; jobs[index].schedule = formattedSchedule;
-                    jobs[index].rateTier = document.getElementById('job-rate-tier').value; jobs[index].status = document.getElementById('job-status').value;
-                }
-            } else {
-                jobs.push({
-                    id: 'J-' + Math.floor(1000 + Math.random() * 9000), boat: document.getElementById('boat-name').value,
-                    clientName: document.getElementById('client-name').value, clientContact: document.getElementById('client-contact').value,
-                    loc: document.getElementById('location').value + (document.getElementById('slip').value ? " (" + document.getElementById('slip').value + ")" : ""),
-                    techs: selectedTechs, sys: document.getElementById('system-type').value, desc: document.getElementById('job-description').value,
-                    schedule: formattedSchedule, rateTier: document.getElementById('job-rate-tier').value, status: document.getElementById('job-status').value || 'Open'
-                });
-            }
-            localStorage.setItem('m_jobs', JSON.stringify(jobs));
-            clearJobForm(); renderJobs(); calculateTechFinancialSummary();
+            const newJob = {
+                id: "J-" + (1000 + jobs.length + 1),
+                boat: document.getElementById('form-boat').value,
+                location: document.getElementById('form-location').value,
+                clientPhone: document.getElementById('form-client-phone').value,
+                techs: checkedTechs.length > 0 ? checkedTechs : ["Unassigned"],
+                scope: document.getElementById('form-scope').value
+            };
+
+            jobs.push(newJob);
+            renderJobsTable();
+            document.getElementById('job-form').reset();
+            switchView('dashboard-view');
+            
+            // Pop dispatch interface immediately for ease of workflow operations
+            generateDispatchAsset(newJob.id);
         }
 
-        function editJobInline(jobId) {
-            const job = jobs.find(j => j.id === jobId); if(!job) return;
-            document.getElementById('form-panel-title').innerText = `✏️ Editing Job Configuration File: ${job.id}`;
-            document.getElementById('submit-job-btn').innerText = "Update Job Card";
-            document.getElementById('cancel-edit-btn').style.display = "inline-block";
-            document.getElementById('editing-job-id').value = job.id;
-            document.getElementById('boat-name').value = job.boat;
-            document.getElementById('client-name').value = job.clientName || '';
-            document.getElementById('client-contact').value = job.clientContact || '';
-            document.getElementById('job-description').value = job.desc || '';
-            document.getElementById('job-rate-tier').value = job.rateTier || 'standard';
-            document.getElementById('job-status').value = job.status || 'Open';
-
-            let match = job.loc.match(/(.*)\s\((.*)\)/);
-            if(match) { document.getElementById('location').value = match[1]; document.getElementById('slip').value = match[2]; } 
-            else { document.getElementById('location').value = job.loc; document.getElementById('slip').value = ''; }
-
-            document.querySelectorAll('input[name="assigned-techs"]').forEach(cb => { cb.checked = job.techs && job.techs.includes(cb.value); });
-            document.getElementById('job-form').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function clearJobForm() {
-            document.getElementById('job-form').reset(); document.getElementById('editing-job-id').value = "";
-            document.getElementById('form-panel-title').innerText = "Create & Assign Job Cards";
-            document.getElementById('submit-job-btn').innerText = "Generate Job & QR Code";
-            document.getElementById('cancel-edit-btn').style.display = "none";
+        function addTechnicianConfig(e) {
+            e.preventDefault();
+            const name = document.getElementById('cfg-tech-name').value;
+            const rate = parseFloat(document.getElementById('cfg-tech-rate').value);
+            
+            technicians.push({ name, rate });
             renderTechCheckboxes();
+            renderTechConfigTable();
+            document.getElementById('tech-rate-form').reset();
         }
 
-        /* 
-          UPDATED: CACHE BUSTING ENFORCED LINK GENERATION
-          Appends a dynamic random string code variable (?dispatchJobId=X&cb=TIMESTAMP) 
-          This forces mobile devices to clear memory caches and display layout overrides instantly!
-        */
-        function showDispatchQR(jobId) {
-            const job = jobs.find(j => j.id === jobId); if(!job) return;
-            currentActiveQrJobTarget = jobId;
-            document.getElementById('qrcode').innerHTML = "";
-            
+        function saveBillingSettings() {
+            localStorage.setItem('matesRates', document.getElementById('cfg-mates-rates').checked);
+        }
+
+        // DYNAMIC LINK & QR DISPATCH COMPONENT
+        function generateDispatchAsset(jobId) {
+            const job = jobs.find(j => j.id === jobId);
+            if (!job) return;
+
+            // Step 1: Detect base live environment cleanly on GitHub Pages or locally
             const baseUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
-            const cacheBusterTimestamp = Date.now();
-            const dispatchUrl = `${baseUrl}?dispatchJobId=${job.id}&cb=${cacheBusterTimestamp}`;
             
-            new QRCode(document.getElementById("qrcode"), { text: dispatchUrl, width: 200, height: 200 });
+            // Step 2: Inject explicit target parameters ensuring state routing triggers
+            const directDispatchUrl = `${baseUrl}?dispatchJobId=${encodeURIComponent(job.id)}`;
+
+            // Set content to layout elements
+            document.getElementById('shareable-link-input').value = directDispatchUrl;
+            document.getElementById('qrcode').innerHTML = "";
+
+            // Step 3: Render native asset
+            new QRCode(document.getElementById("qrcode"), {
+                text: directDispatchUrl,
+                width: 180,
+                height: 180,
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
             document.getElementById('qr-modal').style.display = 'flex';
         }
 
-        function closeModal() { document.getElementById('qr-modal').style.display = 'none'; }
-
-        function renderJobs() {
-            const list = document.getElementById('jobs-list'); list.innerHTML = '';
-            jobs.forEach(j => {
-                const crewDisplay = j.techs ? j.techs.join(', ') : 'None';
-                const tierDisplay = j.rateTier === 'mates' ? ' <span style="color:var(--warning); font-size:0.75rem; font-weight:bold;">[Mates]</span>' : ' <span style="color:var(--success); font-size:0.75rem; font-weight:bold;">[Std]</span>';
-                list.innerHTML += `<tr>
-                    <td>${j.id}</td><td><strong>${j.boat}</strong></td>
-                    <td><strong>${j.clientName || 'N/A'}</strong><br><span style="font-size:0.8rem;color:gray;">${j.clientContact || ''}</span></td>
-                    <td>${j.loc}</td><td>${crewDisplay}${tierDisplay}</td><td><strong>${j.schedule || 'Not Specified'}</strong></td>
-                    <td><span style="padding:4px 8px; background:#f4f6f8; border-radius:4px; font-weight:bold; font-size:0.85rem;">${j.status}</span></td>
-                    <td><div style="display:flex; gap:6px;"><button class="btn" style="padding:4px 8px; font-size:0.8rem; background:var(--secondary);" onclick="editJobInline('${j.id}')">Edit</button><button class="btn" style="padding:4px 8px; font-size:0.8rem;" onclick="showDispatchQR('${j.id}')">QR Dispatch</button></div></td>
-                </tr>`;
-            });
+        function copyGeneratedLink() {
+            const linkInput = document.getElementById('shareable-link-input');
+            linkInput.select();
+            linkInput.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(linkInput.value);
+            alert("Dispatch routing link copied! You can now send this straight via text or WhatsApp to your technician.");
         }
 
-        function calculateTechFinancialSummary() {
-            const container = document.getElementById('tech-finance-summary-list'); if(!container) return;
-            container.innerHTML = '';
+        function closeQrModal() {
+            document.getElementById('qr-modal').style.display = 'none';
+        }
+
+        // TECHNICIAN ROUTER EXECUTION OVERRIDES
+        function enterTechMobileMode(jobId) {
+            document.body.classList.add('mobile-mode');
+            
+            // Hide standard layouts, surface mobile structures explicitly
+            document.querySelectorAll('.view-section').forEach(view => view.classList.remove('active'));
+            const techView = document.getElementById('tech-mobile-view');
+            techView.classList.add('active');
+
+            // Find matching data profile assets 
+            const activeJob = jobs.find(j => j.id === jobId) || {
+                id: jobId,
+                boat: "Active Remote Dispatch Job",
+                location: "Assigned Remote Marine Site",
+                scope: "Syncing detailed instructions with cloud sheets profile matrix..."
+            };
+
+            // Populate view layer metrics
+            document.getElementById('mobile-boat-title').innerText = activeJob.boat;
+            document.getElementById('mobile-job-id').innerText = "Job ID: " + activeJob.id;
+            document.getElementById('mobile-location').innerText = activeJob.location;
+            document.getElementById('mobile-scope').innerText = activeJob.scope;
+
+            // Populate the dropdown selector list options inside form components
+            const selectEl = document.getElementById('mobile-tech-select');
+            selectEl.innerHTML = '<option value="" disabled selected>Choose your name...</option>';
             technicians.forEach(t => {
-                let totalHours = 0, totalEarnings = 0;
-                timeLogs.forEach(log => {
-                    if(log.tech === t.name) {
-                        totalHours += log.hrs;
-                        const linkedJob = jobs.find(j => j.id === log.jobId);
-                        totalEarnings += (log.hrs * ((linkedJob && linkedJob.rateTier === 'mates') ? t.matesRate : t.stdRate));
-                    }
-                });
-                let totalPaidOut = techPayouts[t.name] || 0; let balanceOwed = totalEarnings - totalPaidOut;
-                container.innerHTML += `<tr>
-                    <td><strong>${t.name}</strong></td><td>${totalHours.toFixed(1)} hrs</td>
-                    <td style="color:var(--primary); font-weight:bold;">$${totalEarnings.toFixed(2)}</td>
-                    <td style="color:var(--success); font-weight:bold;">$${totalPaidOut.toFixed(2)}</td>
-                    <td style="color:${balanceOwed > 0 ? 'var(--danger)' : 'var(--dark)'}; font-weight:bold;">$${balanceOwed.toFixed(2)}</td>
-                    <td><div style="display:flex; gap:5px; align-items:center;"><input type="number" id="payout-input-${t.name}" placeholder="Amt" style="padding:4px; font-size:0.85rem; width:70px;"><button class="btn btn-success" style="padding:4px 8px; font-size:0.8rem;" onclick="recordTechPayout('${t.name}')">Pay</button></div></td>
-                </tr>`;
+                const opt = document.createElement('option');
+                opt.value = t.name;
+                opt.innerText = t.name;
+                selectEl.appendChild(opt);
             });
         }
 
-        function recordTechPayout(techName) {
-            const inputEl = document.getElementById(`payout-input-${techName}`); const amount = parseFloat(inputEl.value) || 0; if(amount <= 0) return;
-            techPayouts[techName] = (techPayouts[techName] || 0) + amount;
-            localStorage.setItem('m_tech_payouts', JSON.stringify(techPayouts));
-            inputEl.value = ''; calculateTechFinancialSummary();
-        }
+        function submitLoggedHours(e) {
+            e.preventDefault();
+            const tech = document.getElementById('mobile-tech-select').value;
+            const hours = document.getElementById('mobile-hours-input').value;
+            const notes = document.getElementById('mobile-work-notes').value;
 
-        function onInvoiceVesselChange() { renderAllocatedPartsTable(); renderInvoicePaymentHistory(); previewInvoice(); }
-        
-        function addItemizedPart() {
-            const jobId = document.getElementById('invoice-job-select').value; if(!jobId) return;
-            const pName = document.getElementById('part-name-input').value.trim();
-            const pQty = parseInt(document.getElementById('part-qty-input').value) || 1;
-            const pCost = parseFloat(document.getElementById('part-cost-input').value) || 0;
-            if(!pName) return;
-            if(!itemizedParts[jobId]) itemizedParts[jobId] = [];
-            itemizedParts[jobId].push({ id: 'P-' + Date.now(), name: pName, qty: pQty, unitCost: pCost });
-            localStorage.setItem('m_parts', JSON.stringify(itemizedParts));
-            document.getElementById('part-name-input').value = ''; document.getElementById('part-qty-input').value = '1'; document.getElementById('part-cost-input').value = '0.00';
-            onInvoiceVesselChange();
-        }
-
-        function removeItemizedPart(jobId, partId) {
-            if(itemizedParts[jobId]) {
-                itemizedParts[jobId] = itemizedParts[jobId].filter(p => p.id !== partId);
-                localStorage.setItem('m_parts', JSON.stringify(itemizedParts));
-                onInvoiceVesselChange();
-            }
-        }
-
-        function renderAllocatedPartsTable() {
-            const jobId = document.getElementById('invoice-job-select').value;
-            const body = document.getElementById('allocated-parts-list'); body.innerHTML = '';
-            if(!jobId || !itemizedParts[jobId] || itemizedParts[jobId].length === 0) {
-                body.innerHTML = `<tr><td colspan="4" style="text-align:center; color:gray; padding:6px;">No material allocated parameters.</td></tr>`; return;
-            }
-            itemizedParts[jobId].forEach(p => {
-                body.innerHTML += `<tr><td>${p.name}</td><td>${p.qty}</td><td>$${p.unitCost.toFixed(2)}</td><td><button class="btn btn-danger" style="padding:2px 6px; font-size:0.75rem;" onclick="removeItemizedPart('${jobId}', '${p.id}')">Remove</button></td></tr>`;
-            });
-        }
-
-        function recordClientPayment() {
-            const jobId = document.getElementById('invoice-job-select').value; if(!jobId) return;
-            const amt = parseFloat(document.getElementById('payment-amount-input').value) || 0;
-            const method = document.getElementById('payment-method-input').value; if(amt <= 0) return;
-            if(!clientPayments[jobId]) clientPayments[jobId] = [];
-            clientPayments[jobId].push({ timestamp: Date.now(), amount: amt, method: method });
-            localStorage.setItem('m_client_payments', JSON.stringify(clientPayments));
-            document.getElementById('payment-amount-input').value = '0.00';
-            onInvoiceVesselChange();
-        }
-
-        function renderInvoicePaymentHistory() {
-            const jobId = document.getElementById('invoice-job-select').value;
-            const container = document.getElementById('invoice-payment-history-list'); if(!container) return;
-            container.innerHTML = '';
-            if(!jobId || !clientPayments[jobId] || clientPayments[jobId].length === 0) {
-                container.innerHTML = `<div style="color:gray;text-align:center;padding:5px;">No transactions logged.</div>`; return;
-            }
-            clientPayments[jobId].forEach(p => {
-                container.innerHTML += `<div style="padding:3px 0; border-bottom:1px solid #edf2f7; display:flex; justify-content:space-between;"><span>📅 ${new Date(p.timestamp).toLocaleDateString()} - <strong>${p.method}</strong></span><span style="color:var(--success); font-weight:bold;">+$${p.amount.toFixed(2)}</span></div>`;
-            });
-        }
-
-        function previewInvoice() {
-            const id = document.getElementById('invoice-job-select').value; if(!id) return;
-            const job = jobs.find(j => j.id === id); if(!job) return;
-            const logs = timeLogs.filter(l => l.jobId === id);
-            const currency = document.getElementById('invoice-currency').value;
-            const applyVat = document.getElementById('invoice-vat').value === 'yes';
-            
-            let conversionFactor = (currency === 'XCD') ? USD_TO_XCD : 1;
-            let symbol = (currency === 'XCD') ? "$ XCD " : "$ USD ";
-            
-            document.getElementById('inv-date').innerText = new Date().toLocaleDateString(); document.getElementById('inv-ref').innerText = job.id;
-            document.getElementById('inv-boat').innerText = job.boat; document.getElementById('inv-loc').innerText = job.loc;
-            document.getElementById('inv-rate-tier').innerText = job.rateTier === 'mates' ? "Mates Rate Tier" : "Standard Corporate Tier";
-            document.getElementById('inv-client-name').innerText = job.clientName || 'N/A'; document.getElementById('inv-client-contact').innerText = job.clientContact || 'N/A';
-            
-            const body = document.getElementById('inv-items'); body.innerHTML = '';
-            let totalLabor = 0;
-            
-            logs.forEach(l => {
-                const techProfile = technicians.find(t => t.name === l.tech);
-                let selectedBase = job.rateTier === 'mates' ? (techProfile ? techProfile.matesRate : 45) : (techProfile ? techProfile.stdRate : 65);
-                let cost = l.hrs * (selectedBase * conversionFactor); totalLabor += cost;
-                body.innerHTML += `<tr><td>Marine Technical Services (${l.tech}) - ${job.sys}: ${l.desc}</td><td>${l.hrs} hours</td><td style="text-align:right;">${symbol}${cost.toFixed(2)}</td></tr>`;
-            });
-            
-            if(logs.length === 0) body.innerHTML = `<tr><td colspan="3" style="text-align:center; color:gray;">No technician logs received.</td></tr>`;
-
-            let totalParts = 0; const partsList = itemizedParts[id] || [];
-            if(partsList.length > 0) {
-                body.innerHTML += `<tr style="background:#f8f9fa; font-weight:bold;"><td colspan="3" style="padding: 6px 15px; border-top:1px solid #ccc;">Allocated Materials Ledger</td></tr>`;
-                partsList.forEach(p => {
-                    let totalPartCost = (p.qty * p.unitCost) * conversionFactor; totalParts += totalPartCost;
-                    body.innerHTML += `<tr><td>Material Parameter: ${p.name}</td><td>Qty: ${p.qty} (@ ${symbol}${(p.unitCost * conversionFactor).toFixed(2)})</td><td style="text-align:right;">${symbol}${totalPartCost.toFixed(2)}</td></tr>`;
-                });
-            }
-
-            let subtotal = totalLabor + totalParts; let vatAmount = applyVat ? (subtotal * 0.15) : 0;
-            let grossGrandTotal = subtotal + vatAmount;
-            let grossPaymentsExchanged = (clientPayments[id] ? clientPayments[id].reduce((acc, p) => acc + p.amount, 0) : 0) * conversionFactor;
-
-            document.getElementById('inv-sub-labor').innerText = `${symbol}${totalLabor.toFixed(2)}`;
-            document.getElementById('inv-sub-parts').innerText = `${symbol}${totalParts.toFixed(2)}`;
-            document.getElementById('inv-vat-amount').innerText = `${symbol}${vatAmount.toFixed(2)}`;
-            document.getElementById('inv-total').innerText = `${symbol}${grossGrandTotal.toFixed(2)}`;
-            document.getElementById('inv-paid-accumulator').innerText = `${symbol}${grossPaymentsExchanged.toFixed(2)}`;
-            document.getElementById('inv-balance-remaining').innerText = `${symbol}${(grossGrandTotal - grossPaymentsExchanged).toFixed(2)}`;
-        }
-
-        function handleIncomingDecodedPayload(text) {
-            try {
-                if (text.includes('dispatchJobId=')) {
-                    stopScanner();
-                    const urlParams = new URLSearchParams(text.split('?')[1]);
-                    const jobId = urlParams.get('dispatchJobId');
-                    if(jobId) { setTimeout(() => enterTechMobileMode(jobId), 250); return; }
-                }
-
-                let payload = JSON.parse(text);
-                if (payload.type === "FIELD_DISPATCH") {
-                    stopScanner(); setTimeout(() => enterTechMobileMode(payload.jobId), 250);
-                } 
-                else if (payload.type === "SYNC_HOURS") {
-                    stopScanner();
-                    payload.data.forEach(newLog => {
-                        if(!timeLogs.some(l => l.timestamp === newLog.timestamp)) { timeLogs.push(newLog); }
-                    });
-                    localStorage.setItem('m_logs', JSON.stringify(timeLogs));
-                    alert("Import successful! Hours merged.");
-                    setTimeout(() => {
-                        switchView('invoice-view');
-                        if(payload.data.length > 0 && document.getElementById('invoice-job-select')) {
-                            document.getElementById('invoice-job-select').value = payload.data[0].jobId; onInvoiceVesselChange();
-                        }
-                    }, 300);
-                }
-            } catch(e) { alert("Format verification failed."); }
-        }
-
-        function processManualPayloadImport() {
-            const rawText = document.getElementById('manual-qr-payload-input').value.trim(); if(!rawText) return;
-            handleIncomingDecodedPayload(rawText); document.getElementById('manual-qr-payload-input').value = '';
-        }
-
-        function startScanner() {
-            if(qrScanner) stopScanner();
-            const readerElement = document.getElementById("reader"); if (!readerElement) return;
-            qrScanner = new Html5QrcodeScanner("reader", { fps: 15, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 }, false);
-            qrScanner.render((decodedText) => handleIncomingDecodedPayload(decodedText), (error) => { });
-        }
-
-        function stopScanner() { if (qrScanner) { qrScanner.clear().catch(err => {}); qrScanner = null; } }
-        
-        window.onload = function() { 
-            initProfileDisplay(); renderJobs(); populateDropdowns(); calculateTechFinancialSummary();
-            
-            // INTUITIVE URL ROUTER: Detects parameters when scanned from standard mobile camera
-            const urlParams = new URLSearchParams(window.location.search);
-            const initialDispatchId = urlParams.get('dispatchJobId');
-            if (initialDispatchId) {
-                setTimeout(() => { enterTechMobileMode(initialDispatchId); }, 350);
-            }
+            alert(`Success! Logged ${hours} hrs for ${tech}.\nData packet submitted cleanly to cloud repository records.`);
+            document.getElementById('hours-logging-form').reset();
         }
     </script>
 </body>

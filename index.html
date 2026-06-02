@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Marine Electric Manager</title>
-    <!-- QR Code Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
@@ -81,33 +80,27 @@
 </head>
 <body>
 
-    <!-- SYSTEM NAVIGATION PANEL (Hidden in Tech Mode) -->
     <nav id="admin-sidebar">
         <h2 id="nav-brand-title">Admin Dashboard</h2>
-        <button onclick="switchView('jobs-view')" id="btn-jobs-view" class="active">⚓ Job Cards</button>
-        <button onclick="switchView('sync-view')" id="btn-sync-view">🔄 Sync Tech Phone</button>
-        <button onclick="switchView('invoice-view')" id="btn-invoice-view">🧾 Invoicing</button>
-        <button onclick="switchView('settings-view')" id="btn-settings-view">⚙️ Settings</button>
+        <button onclick="switchView('jobs-view')" id="nav-jobs-view" class="active">⚓ Job Cards</button>
+        <button onclick="switchView('sync-view')" id="nav-sync-view">🔄 Sync Tech Phone</button>
+        <button onclick="switchView('invoice-view')" id="nav-invoice-view">🧾 Invoicing</button>
+        <button onclick="switchView('settings-view')" id="nav-settings-view">⚙️ Settings</button>
     </nav>
 
-    <!-- MOBILE FIELD CONTEXT HEADER HEADER (Visible only in Tech Mode) -->
     <div class="tech-mobile-header" id="tech-header-banner">⚓ Field Assignment Dispatch</div>
 
-    <!-- MAIN DATA DISPLAY COMPONENT -->
     <main>
         
-        <!-- VIEW: TECHNICIAN MOBILE LIVE VIEW TICKET CARD -->
         <div id="tech-card-view" class="view">
             <div class="tech-card" id="tech-card-render-zone">
-                <!-- Dynamic structural injection template from runtime JS engine -->
-            </div>
+                </div>
             
-            <!-- TECH LOGGING SIMULATOR INSIDE THE FIELD CARD VIEW -->
             <div class="tech-card" style="border-top: 6px solid var(--success);">
-                <h3 style="margin-bottom: 10px;">Clock Hours for this Assignment</h3>
+                <h3 style="margin-bottom: 12px;">Clock Hours for this Assignment</h3>
                 <div class="form-grid">
                     <div>
-                        <label>Select Your Name</label>
+                        <label>Your Name</label>
                         <select id="tech-clock-name-select"></select>
                     </div>
                     <div>
@@ -116,12 +109,13 @@
                     </div>
                 </div>
                 <div style="margin-bottom: 15px;">
-                    <label>Task Work Done / Progress Notes</label>
-                    <input type="text" id="tech-clock-desc-input" placeholder="e.g. Diagnosed battery short circuit, terminated lines">
+                    <label>Task Progress Notes</label>
+                    <input type="text" id="tech-clock-desc-input" placeholder="e.g., Troubleshot starter relay terminal connection">
                 </div>
-                <button class="btn btn-success" style="width:100%; margin-bottom: 10px;" onclick="techSubmitLogLocal()">Log Labor Hours to Phone memory</button>
+                <button class="btn btn-success" style="width:100%; margin-bottom: 10px;" onclick="techSubmitLogLocal()">Save Hours to Phone</button>
+                
                 <div id="tech-local-sync-qr-zone" style="display:none; text-align:center; margin-top:15px; border-top:1px solid #eee; padding-top:15px;">
-                    <p style="font-size:0.85rem; margin-bottom:10px; color:var(--secondary); font-weight:bold;">Show this QR Code to Admin to Sync Hours:</p>
+                    <p style="font-size:0.85rem; margin-bottom:10px; color:var(--secondary); font-weight:bold;">Admin Scan Target (Return Sync):</p>
                     <div id="tech-sync-qrcode-target" style="display:inline-block; padding:10px; background:white;"></div>
                 </div>
             </div>
@@ -129,7 +123,6 @@
             <button class="btn btn-danger" style="width:100%; padding:14px;" onclick="exitTechModeFileSystem()">Return to Master Console Admin</button>
         </div>
 
-        <!-- VIEW 1: OPERATIONS / JOBS ADMIN WORKSPACE -->
         <div id="jobs-view" class="view active">
             <h1 id="form-panel-title">Create & Assign Job Cards</h1>
             <div class="card">
@@ -211,7 +204,6 @@
             </div>
         </div>
 
-        <!-- VIEW 2: BARCODE/QR WEB-CAMERA INPUT OVERLAY -->
         <div id="sync-view" class="view">
             <h1>Scan Technician Phone</h1>
             <p style="margin-bottom: 15px;">When your tech returns to the office or sends a screenshot, scan their sync QR code here to import hours.</p>
@@ -222,14 +214,13 @@
                 </div>
                 <div style="border-left: 1px solid #ccc; padding-left: 20px;">
                     <h4>Manual Backup Payload Entry</h4>
-                    <p style="font-size: 0.85rem; margin-bottom: 10px; color:#666;">If your system does not have an active camera attachment, paste the QR raw string contents here:</p>
+                    <p style="font-size: 0.85rem; margin-bottom: 10px; color:#666;">If the browser camera fails to initialize, paste the tech's raw text export here:</p>
                     <textarea id="manual-qr-payload-input" rows="6" placeholder='{"type":"SYNC_HOURS","data":[...]}' style="font-family: monospace; font-size: 0.85rem;"></textarea>
                     <button class="btn btn-success" style="width:100%; margin-top:10px;" onclick="processManualPayloadImport()">Parse & Sync Manual Logs</button>
                 </div>
             </div>
         </div>
 
-        <!-- VIEW 3: TAX & INVOICING REPORT ENGINE -->
         <div id="invoice-view" class="view">
             <h1>Marine Invoice & Payment Ledger</h1>
             <div class="card" style="display:grid; grid-template-columns: 3fr 2fr; gap:20px;">
@@ -319,7 +310,6 @@
             </div>
         </div>
 
-        <!-- VIEW 4: SYSTEM BUSINESS SETUP CONFIGURATION -->
         <div id="settings-view" class="view">
             <h1>Business Profile Configuration</h1>
             <div class="card">
@@ -363,11 +353,10 @@
         </div>
     </main>
 
-    <!-- QR CODE SCREEN SYNC / DISPATCH DIALOG OVERLAY -->
     <div id="qr-modal">
         <div class="modal-content">
             <h2 style="color:var(--primary);">Technician Job Dispatch</h2>
-            <p style="margin: 10px 0; font-size:0.9rem; color:#555;">Have the tech scan this code with their <strong>phone's normal camera app</strong> to pull up this job card instantly.</p>
+            <p style="margin: 10px 0; font-size:0.9rem; color:#555;">Scan this with any standard smartphone camera to view the work assignment immediately.</p>
             <div id="qrcode" style="display:flex; justify-content:center; margin:20px 0; padding:10px; background:white; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.1);"></div>
             <button class="btn btn-success" style="width:100%; margin-bottom:8px;" onclick="simulateTechScanningLink()">Simulate Device Scan (Test View)</button>
             <button class="btn btn-danger" style="width:100%;" onclick="closeModal()">Close / Return</button>
@@ -413,7 +402,7 @@
             const targetView = document.getElementById(viewId);
             if(targetView) targetView.classList.add('active');
             
-            const targetNavBtn = document.getElementById('btn-' + viewId);
+            let targetNavBtn = document.getElementById('nav-' + viewId);
             if(targetNavBtn) targetNavBtn.classList.add('active');
             
             populateDropdowns();
@@ -475,14 +464,14 @@
             switchView('tech-card-view');
         }
 
-        /* TECH GENERATES LOG LINES LOCAL TO SMARTPHONE CONTAINER SPACE */
+        /* TECH LOGS TIME DATA LOCALLY */
         function techSubmitLogLocal() {
             if(!activeTechModeJobId) return;
             const techName = document.getElementById('tech-clock-name-select').value;
             const hoursVal = parseFloat(document.getElementById('tech-clock-hours-input').value) || 0;
-            const descVal = document.getElementById('tech-clock-desc-input').value.trim() || "Performed electrical repairs";
+            const descVal = document.getElementById('tech-clock-desc-input').value.trim() || "Performed electrical tasks";
 
-            if(hoursVal <= 0) { alert("Enter positive timeline metrics."); return; }
+            if(hoursVal <= 0) { alert("Enter valid hours."); return; }
 
             let localLogs = JSON.parse(localStorage.getItem('m_logs')) || [];
             const newLogBlock = {
@@ -505,14 +494,14 @@
                 height: 180
             });
 
-            alert("Hours added successfully to device memory! Present the generated QR code to the office admin scanner below to update invoices.");
+            alert("Hours saved to phone memory! Show the generated QR code to the office computer to sync.");
         }
 
         function exitTechModeFileSystem() {
             document.body.classList.remove('tech-mode');
             document.getElementById('admin-sidebar').style.display = 'flex';
             
-            // Clean up the URL query parameter when exiting tech mode
+            // Clean browser address bar query parameter strings
             const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
             window.history.replaceState({path: cleanUrl}, '', cleanUrl);
             
@@ -713,12 +702,13 @@
             renderTechCheckboxes();
         }
 
+        /* CHANGED: QR DISPATCH GENERATES A TRUE COMPILER ROUTE URL */
         function showDispatchQR(jobId) {
             const job = jobs.find(j => j.id === jobId); if(!job) return;
             currentActiveQrJobTarget = jobId;
             document.getElementById('qrcode').innerHTML = "";
             
-            // BUILD A REAL INTERNET URL POINTER SO A TECH'S CAMERA OPENS THE SITE
+            // Build absolute URL string so physical phone cameras interpret this as a webpage link
             const baseUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
             const dispatchUrl = `${baseUrl}?dispatchJobId=${job.id}`;
             
@@ -760,252 +750,4 @@
             const container = document.getElementById('tech-finance-summary-list'); if(!container) return;
             container.innerHTML = '';
             technicians.forEach(t => {
-                let totalHours = 0, totalEarnings = 0;
-                timeLogs.forEach(log => {
-                    if(log.tech === t.name) {
-                        totalHours += log.hrs;
-                        const linkedJob = jobs.find(j => j.id === log.jobId);
-                        totalEarnings += (log.hrs * ((linkedJob && linkedJob.rateTier === 'mates') ? t.matesRate : t.stdRate));
-                    }
-                });
-                let totalPaidOut = techPayouts[t.name] || 0;
-                let balanceOwed = totalEarnings - totalPaidOut;
-                container.innerHTML += `<tr>
-                    <td><strong>${t.name}</strong></td>
-                    <td>${totalHours.toFixed(1)} hrs</td>
-                    <td style="color:var(--primary); font-weight:bold;">$${totalEarnings.toFixed(2)}</td>
-                    <td style="color:var(--success); font-weight:bold;">$${totalPaidOut.toFixed(2)}</td>
-                    <td style="color:${balanceOwed > 0 ? 'var(--danger)' : 'var(--dark)'}; font-weight:bold;">$${balanceOwed.toFixed(2)}</td>
-                    <td>
-                        <div style="display:flex; gap:5px; align-items:center;">
-                            <input type="number" id="payout-input-${t.name}" placeholder="Amount" style="padding:4px; font-size:0.85rem; width:80px;">
-                            <button class="btn btn-success" style="padding:4px 8px; font-size:0.8rem;" onclick="recordTechPayout('${t.name}')">Pay</button>
-                        </div>
-                    </td>
-                </tr>`;
-            });
-        }
-
-        function recordTechPayout(techName) {
-            const inputEl = document.getElementById(`payout-input-${techName}`);
-            const amount = parseFloat(inputEl.value) || 0; if(amount <= 0) return;
-            techPayouts[techName] = (techPayouts[techName] || 0) + amount;
-            localStorage.setItem('m_tech_payouts', JSON.stringify(techPayouts));
-            inputEl.value = ''; calculateTechFinancialSummary();
-        }
-
-        /* ------------------ INVOICES ------------------ */
-        function onInvoiceVesselChange() { renderAllocatedPartsTable(); renderInvoicePaymentHistory(); previewInvoice(); }
-        
-        function addItemizedPart() {
-            const jobId = document.getElementById('invoice-job-select').value; if(!jobId) return;
-            const pName = document.getElementById('part-name-input').value.trim();
-            const pQty = parseInt(document.getElementById('part-qty-input').value) || 1;
-            const pCost = parseFloat(document.getElementById('part-cost-input').value) || 0;
-            
-            if(!pName) return;
-            if(!itemizedParts[jobId]) itemizedParts[jobId] = [];
-            itemizedParts[jobId].push({ id: 'P-' + Date.now(), name: pName, qty: pQty, unitCost: pCost });
-            localStorage.setItem('m_parts', JSON.stringify(itemizedParts));
-            
-            document.getElementById('part-name-input').value = ''; document.getElementById('part-qty-input').value = '1'; document.getElementById('part-cost-input').value = '0.00';
-            onInvoiceVesselChange();
-        }
-
-        function removeItemizedPart(jobId, partId) {
-            if(itemizedParts[jobId]) {
-                itemizedParts[jobId] = itemizedParts[jobId].filter(p => p.id !== partId);
-                localStorage.setItem('m_parts', JSON.stringify(itemizedParts));
-                onInvoiceVesselChange();
-            }
-        }
-
-        function renderAllocatedPartsTable() {
-            const jobId = document.getElementById('invoice-job-select').value;
-            const body = document.getElementById('allocated-parts-list'); body.innerHTML = '';
-            if(!jobId || !itemizedParts[jobId] || itemizedParts[jobId].length === 0) {
-                body.innerHTML = `<tr><td colspan="4" style="text-align:center; color:gray; padding:6px;">No material parameters allocated yet.</td></tr>`; return;
-            }
-            itemizedParts[jobId].forEach(p => {
-                body.innerHTML += `<tr><td>${p.name}</td><td>${p.qty}</td><td>$${p.unitCost.toFixed(2)}</td><td><button class="btn btn-danger" style="padding:2px 6px; font-size:0.75rem;" onclick="removeItemizedPart('${jobId}', '${p.id}')">Remove</button></td></tr>`;
-            });
-        }
-
-        function recordClientPayment() {
-            const jobId = document.getElementById('invoice-job-select').value; if(!jobId) return;
-            const amt = parseFloat(document.getElementById('payment-amount-input').value) || 0;
-            const method = document.getElementById('payment-method-input').value;
-            if(amt <= 0) return;
-
-            if(!clientPayments[jobId]) clientPayments[jobId] = [];
-            clientPayments[jobId].push({ timestamp: Date.now(), amount: amt, method: method });
-            localStorage.setItem('m_client_payments', JSON.stringify(clientPayments));
-            document.getElementById('payment-amount-input').value = '0.00';
-            onInvoiceVesselChange();
-        }
-
-        function renderInvoicePaymentHistory() {
-            const jobId = document.getElementById('invoice-job-select').value;
-            const container = document.getElementById('invoice-payment-history-list'); if(!container) return;
-            container.innerHTML = '';
-            if(!jobId || !clientPayments[jobId] || clientPayments[jobId].length === 0) {
-                container.innerHTML = `<div style="color:gray;text-align:center;padding:5px;">No payments posted.</div>`; return;
-            }
-            clientPayments[jobId].forEach(p => {
-                container.innerHTML += `<div style="padding:3px 0; border-bottom:1px solid #edf2f7; display:flex; justify-content:space-between;">
-                    <span>📅 ${new Date(p.timestamp).toLocaleDateString()} - <strong>${p.method}</strong></span>
-                    <span style="color:var(--success); font-weight:bold;">+$${p.amount.toFixed(2)}</span>
-                </div>`;
-            });
-        }
-
-        function previewInvoice() {
-            const id = document.getElementById('invoice-job-select').value; if(!id) return;
-            const job = jobs.find(j => j.id === id); if(!job) return;
-            const logs = timeLogs.filter(l => l.jobId === id);
-            const currency = document.getElementById('invoice-currency').value;
-            const applyVat = document.getElementById('invoice-vat').value === 'yes';
-            
-            let conversionFactor = (currency === 'XCD') ? USD_TO_XCD : 1;
-            let symbol = (currency === 'XCD') ? "$ XCD " : "$ USD ";
-            
-            document.getElementById('inv-date').innerText = new Date().toLocaleDateString();
-            document.getElementById('inv-ref').innerText = job.id;
-            document.getElementById('inv-boat').innerText = job.boat;
-            document.getElementById('inv-loc').innerText = job.loc;
-            document.getElementById('inv-rate-tier').innerText = job.rateTier === 'mates' ? "Mates Rate Tier" : "Standard Corporate Tier";
-            document.getElementById('inv-client-name').innerText = job.clientName || 'N/A';
-            document.getElementById('inv-client-contact').innerText = job.clientContact || 'N/A';
-            
-            const body = document.getElementById('inv-items'); body.innerHTML = '';
-            let totalLabor = 0;
-            
-            logs.forEach(l => {
-                const techProfile = technicians.find(t => t.name === l.tech);
-                let selectedBase = job.rateTier === 'mates' ? (techProfile ? techProfile.matesRate : 45) : (techProfile ? techProfile.stdRate : 65);
-                let cost = l.hrs * (selectedBase * conversionFactor); 
-                totalLabor += cost;
-                body.innerHTML += `<tr><td>Marine Tech Services (${l.tech}) - ${job.sys}: ${l.desc}</td><td>${l.hrs} hours</td><td style="text-align:right;">${symbol}${cost.toFixed(2)}</td></tr>`;
-            });
-            
-            if(logs.length === 0) body.innerHTML = `<tr><td colspan="3" style="text-align:center; color:gray;">No technician time logs received yet.</td></tr>`;
-
-            let totalParts = 0;
-            const partsList = itemizedParts[id] || [];
-            if(partsList.length > 0) {
-                body.innerHTML += `<tr style="background:#f8f9fa; font-weight:bold;"><td colspan="3" style="padding: 6px 15px; border-top:1px solid #ccc;">Allocated Materials Ledger</td></tr>`;
-                partsList.forEach(p => {
-                    let totalPartCost = (p.qty * p.unitCost) * conversionFactor;
-                    totalParts += totalPartCost;
-                    body.innerHTML += `<tr><td>Material: ${p.name}</td><td>Qty: ${p.qty} (@ ${symbol}${(p.unitCost * conversionFactor).toFixed(2)})</td><td style="text-align:right;">${symbol}${totalPartCost.toFixed(2)}</td></tr>`;
-                });
-            }
-
-            let subtotal = totalLabor + totalParts;
-            let vatAmount = applyVat ? (subtotal * 0.15) : 0;
-            let grossGrandTotal = subtotal + vatAmount;
-            let grossPaymentsExchanged = (clientPayments[id] ? clientPayments[id].reduce((acc, p) => acc + p.amount, 0) : 0) * conversionFactor;
-
-            document.getElementById('inv-sub-labor').innerText = `${symbol}${totalLabor.toFixed(2)}`;
-            document.getElementById('inv-sub-parts').innerText = `${symbol}${totalParts.toFixed(2)}`;
-            document.getElementById('inv-vat-amount').innerText = `${symbol}${vatAmount.toFixed(2)}`;
-            document.getElementById('inv-total').innerText = `${symbol}${grossGrandTotal.toFixed(2)}`;
-            document.getElementById('inv-paid-accumulator').innerText = `${symbol}${grossPaymentsExchanged.toFixed(2)}`;
-            document.getElementById('inv-balance-remaining').innerText = `${symbol}${(grossGrandTotal - grossPaymentsExchanged).toFixed(2)}`;
-        }
-
-        /* ------------------ DISPATCH SYNC CAMERA ENGINE ------------------ */
-        function handleIncomingDecodedPayload(text) {
-            try {
-                // If the technician inadvertently scans an operational web link inside the sync layout, catch and extract parameters safely
-                if (text.includes('?dispatchJobId=')) {
-                    stopScanner();
-                    const urlParams = new URLSearchParams(text.split('?')[1]);
-                    const jobId = urlParams.get('dispatchJobId');
-                    if(jobId) {
-                        setTimeout(() => enterTechMobileMode(jobId), 250);
-                        return;
-                    }
-                }
-
-                let payload = JSON.parse(text);
-                
-                if (payload.type === "FIELD_DISPATCH") {
-                    stopScanner();
-                    setTimeout(() => enterTechMobileMode(payload.jobId), 250);
-                } 
-                else if (payload.type === "SYNC_HOURS") {
-                    stopScanner();
-                    
-                    payload.data.forEach(newLog => {
-                        if(!timeLogs.some(l => l.timestamp === newLog.timestamp)) {
-                            timeLogs.push(newLog);
-                        }
-                    });
-                    
-                    localStorage.setItem('m_logs', JSON.stringify(timeLogs));
-                    alert("Import successful! Technician labor log history synced with master engine data.");
-                    
-                    setTimeout(() => {
-                        switchView('invoice-view');
-                        if(payload.data.length > 0 && document.getElementById('invoice-job-select')) {
-                            document.getElementById('invoice-job-select').value = payload.data[0].jobId;
-                            onInvoiceVesselChange();
-                        }
-                    }, 300);
-                }
-            } catch(e) { 
-                alert("Unrecognized string format. Verify data packet encoding integrity."); 
-            }
-        }
-
-        function processManualPayloadImport() {
-            const rawText = document.getElementById('manual-qr-payload-input').value.trim();
-            if(!rawText) return;
-            handleIncomingDecodedPayload(rawText);
-            document.getElementById('manual-qr-payload-input').value = '';
-        }
-
-        function startScanner() {
-            if(qrScanner) {
-                stopScanner();
-            }
-            
-            const readerElement = document.getElementById("reader");
-            if (!readerElement) return;
-
-            qrScanner = new Html5QrcodeScanner("reader", { 
-                fps: 15, 
-                qrbox: { width: 250, height: 250 },
-                aspectRatio: 1.0
-            }, false);
-            
-            qrScanner.render(
-                (decodedText) => handleIncomingDecodedPayload(decodedText),
-                (error) => { }
-            );
-        }
-
-        function stopScanner() { 
-            if (qrScanner) {
-                qrScanner.clear().catch(err => console.log("Scanner closure delayed safely."));
-                qrScanner = null;
-            } 
-        }
-        
-        window.onload = function() { 
-            initProfileDisplay(); renderJobs(); populateDropdowns(); calculateTechFinancialSummary();
-            
-            // CHECK URL PARAMETERS ON INITIAL LOAD FOR INBOUND WEB LINK CODES
-            const urlParams = new URLSearchParams(window.location.search);
-            const initialDispatchId = urlParams.get('dispatchJobId');
-            if (initialDispatchId) {
-                // Ensure job template storage caches exist locally before showing ticket interface
-                setTimeout(() => {
-                    enterTechMobileMode(initialDispatchId);
-                }, 300);
-            }
-        }
-    </script>
-</body>
-</html>
+                let totalHours =

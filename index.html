@@ -368,6 +368,31 @@
             color: var(--text-main);
         }
 
+        .config-flex-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .config-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .config-flex-row {
+                grid-template-columns: 1fr;
+            }
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            .form-group.full-width {
+                grid-column: span 1;
+            }
+        }
+
         /* Routing Utilities */
         .admin-view-wrapper {
             display: block;
@@ -379,6 +404,7 @@
 </head>
 <body>
 
+    <!-- BRANDING BANNER (ADMIN ONLY CONTAINER) -->
     <div class="brand-header" id="adminHeaderWidget">
         <div>
             <h1>EaNintiApp3</h1>
@@ -390,6 +416,7 @@
     </div>
 
     <div class="container">
+        <!-- GLOBAL ADMIN CONTAINER SYSTEM -->
         <div class="admin-view-wrapper" id="masterAdminSystemWrapper">
             
             <div class="nav-tabs" id="navTabsContainer">
@@ -399,6 +426,7 @@
                 <button class="tab-link" data-target="Settings">Settings & Fleet</button>
             </div>
 
+            <!-- TAB: MASTER JOB DASHBOARD -->
             <div id="Dashboard" class="tab-content active">
                 <h2>Active Operational Records</h2>
                 <div class="table-responsive">
@@ -421,6 +449,7 @@
                 </div>
             </div>
 
+            <!-- TAB: CREATION & EDIT ENGINE -->
             <div id="CreateJob" class="tab-content">
                 <h2 id="formTabHeader">Create Job Card</h2>
                 <form id="jobForm">
@@ -472,6 +501,7 @@
                 </form>
             </div>
 
+            <!-- TAB: INTEGRATED INVOICING CALCULATOR -->
             <div id="Invoicing" class="tab-content">
                 <h2>Generate Operational Invoice Summary</h2>
                 <div class="form-grid">
@@ -537,6 +567,7 @@
                 </div>
             </div>
 
+            <!-- TAB: SETTINGS & CONFIGURATION -->
             <div id="Settings" class="tab-content">
                 <h2>System Configuration Panel</h2>
                 <div class="config-flex-row">
@@ -601,6 +632,7 @@
             </div>
         </div>
 
+        <!-- TECHNICIAN MOBILE DISPATCH HUB (ISOLATED BASE ELEMENT) -->
         <div id="HoursLogging" class="tech-only">
             <h1 style="text-align: center; border-bottom: 2px solid var(--primary); padding-bottom: 10px; color: var(--primary);">Spice Isle Marine - Tech Portal</h1>
             
@@ -636,6 +668,7 @@
         </div>
     </div>
 
+    <!-- CONNECTION/DISPATCH ASSET MODAL PANEL -->
     <div id="qrModal" class="modal">
         <div class="modal-content">
             <span class="close-modal" id="closeModalX">&times;</span>
@@ -733,12 +766,10 @@
                 }
             } catch (err) {
                 console.error("UI Initialization failure handled safely: ", err);
-                refreshAdminUI();
             }
         });
 
         function initTechMobileView(jobData) {
-            // Force block visibility state
             let adminWidget = document.getElementById('adminHeaderWidget');
             let masterAdminWrapper = document.getElementById('masterAdminSystemWrapper');
             let techPortalContainer = document.getElementById('HoursLogging');
@@ -747,7 +778,6 @@
             if (masterAdminWrapper) masterAdminWrapper.style.setProperty('display', 'none', 'important');
             if (techPortalContainer) techPortalContainer.style.setProperty('display', 'block', 'important');
 
-            // Inject the parameters straight into fields
             document.getElementById('viewBoatName').innerText = jobData.boatName;
             document.getElementById('viewJobId').innerText = jobData.id;
             document.getElementById('viewBoatOwner').innerText = jobData.boatOwner;
@@ -758,7 +788,6 @@
             document.getElementById('viewMarinaLocation').innerText = jobData.marinaLocation;
             document.getElementById('viewScopeOfWork').innerText = jobData.scopeOfWork;
 
-            // Load drop-down select option
             let select = document.getElementById('workerSelect');
             if (!select) return;
             select.innerHTML = '<option value="" disabled selected>Identify your profile name...</option>';
@@ -821,7 +850,7 @@
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td><strong>${type}</strong></td>
-                    <td><button class="btn-danger remove-type-btn" data-idx="${index}" style="padding:4px 8px; font-size:12px;">Delete</button></td>
+                    <td><button type="button" class="btn-danger remove-type-btn" data-idx="${index}" style="padding:4px 8px; font-size:12px;">Delete</button></td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -888,7 +917,7 @@
                     <td><strong>${tech.name}</strong></td>
                     <td>US$${tech.rate}.00</td>
                     <td>US$${tech.matesRate}.00</td>
-                    <td><button class="btn-danger remove-tech-btn" data-idx="${index}" style="padding: 4px 8px; font-size:12px;">Remove</button></td>
+                    <td><button type="button" class="btn-danger remove-tech-btn" data-idx="${index}" style="padding: 4px 8px; font-size:12px;">Remove</button></td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -915,9 +944,9 @@
                     <td>${job.techs.map(t => `<span class="badge badge-primary" style="margin:2px;">${t.name} (${t.rateProfile === 'mates' ? 'Mates' : 'Std'})</span>`).join('')}</td>
                     <td>
                         <div class="action-cell">
-                            <button class="dispatch-btn" data-id="${job.id}">📲 Dispatch</button>
-                            <button class="btn-warning edit-btn" data-id="${job.id}">✏️ Edit</button>
-                            <button class="btn-danger delete-btn" data-id="${job.id}">🗑️ Delete</button>
+                            <button type="button" class="dispatch-btn" data-id="${job.id}">📲 Dispatch</button>
+                            <button type="button" class="btn-warning edit-btn" data-id="${job.id}">✏️ Edit</button>
+                            <button type="button" class="btn-danger delete-btn" data-id="${job.id}">🗑️ Delete</button>
                         </div>
                     </td>
                 `;
@@ -1113,7 +1142,16 @@
             if(!selectElement) return;
             
             let jobId = selectElement.value;
-            if(!jobId) return;
+            // CRITICAL INVOICING DEFENSIVE GUARD BLOCK: Stops script crash if no active records exist
+            if(!jobId) {
+                document.getElementById('invBoat').innerText = "--";
+                document.getElementById('invOwner').innerText = "--";
+                document.getElementById('invType').innerText = "--";
+                document.getElementById('invTechs').innerText = "--";
+                let tbody = document.getElementById('invoiceTableBody');
+                if (tbody) tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">Create a job to compute financial invoice lines.</td></tr>';
+                return;
+            }
             
             let totalHours = parseFloat(document.getElementById('invoiceHours').value) || 0;
             let job = jobs.find(j => j.id === jobId);
